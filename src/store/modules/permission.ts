@@ -80,7 +80,35 @@ export const usePermissionStore = defineStore("permission", () => {
    * @returns
    */
   function generateRoutes(roles: string[]) {
-    const routesData: RouteRecordRaw[] = [];
+    const routesData: RouteRecordRaw[] = [
+      {
+        path: "/inv",
+        component: Layout,
+        name: "inv",
+        meta: {
+          title: "发票管理",
+          icon: "api",
+          hidden: false,
+          alwaysShow: true,
+          params: null,
+        },
+        children: [
+          {
+            path: "info",
+            component: modules["../../views/inv-manager/index.vue"],
+            name: "发票信息",
+            meta: {
+              title: "发票信息",
+              icon: "tickets",
+              hidden: false,
+              keepAlive: true,
+              alwaysShow: false,
+              params: null,
+            },
+          },
+        ],
+      },
+    ];
     // 当为Admin的时候，添加系统管理菜单
     if (roles.includes("admin")) {
       const adminRoutesData: RouteRecordRaw[] = [
