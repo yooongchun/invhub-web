@@ -348,7 +348,6 @@ function handleQuery() {
   loading.value = true;
   UserAPI.getPage(queryParams)
     .then((data) => {
-      console.log("handleQuery", data);
       pageData.value = data.records;
       total.value = data.total;
     })

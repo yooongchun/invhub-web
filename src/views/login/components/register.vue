@@ -106,6 +106,7 @@
         class="login-content-submit"
         round
         @click="handleRegisterSubmit"
+        @keyup.enter="handleRegisterSubmit"
         :loading="loading"
       >
         <span>注册</span>

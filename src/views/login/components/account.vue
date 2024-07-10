@@ -73,6 +73,7 @@
         class="login-content-submit"
         round
         @click="handleLoginSubmit"
+        @keyup.enter="handleLoginSubmit"
         :loading="state.loading.signIn"
       >
         <span>登录</span>

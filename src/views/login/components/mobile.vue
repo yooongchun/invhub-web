@@ -77,6 +77,7 @@
         type="primary"
         class="login-content-submit"
         round
+        @keyup.enter="handleLoginSubmit"
         @click="handleLoginSubmit"
         :loading="loading"
       >
