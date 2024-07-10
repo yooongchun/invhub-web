@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="flex-x-between mb-10">
       <el-link
-        href="https://gitee.com/youlaiorg/vue3-element-admin/blob/master/src/views/demo/curd/index.vue"
+        href="https://gitee.com/yczha/apihub-web/blob/master/src/views/demo/curd/index.vue"
         type="primary"
         target="_blank"
       >
