@@ -8,23 +8,31 @@
         />
       </div>
 
-      <!-- 布局大小 -->
-      <el-tooltip
-        :content="$t('sizeSelect.tooltip')"
-        effect="dark"
-        placement="bottom"
-      >
-        <size-select class="setting-item" />
-      </el-tooltip>
+      <!--      &lt;!&ndash; 布局大小 &ndash;&gt;-->
+      <!--      <el-tooltip-->
+      <!--        :content="$t('sizeSelect.tooltip')"-->
+      <!--        effect="dark"-->
+      <!--        placement="bottom"-->
+      <!--      >-->
+      <!--        <size-select class="setting-item" />-->
+      <!--      </el-tooltip>-->
 
       <!-- 语言选择 -->
-      <lang-select class="setting-item" />
+      <!--      <lang-select class="setting-item" />-->
+      <el-button
+        :icon="isDark ? Moon : Sunny"
+        circle
+        size="small"
+        @click="toggleTheme"
+        class="toggle-theme-btn"
+      />
     </template>
 
     <!-- 用户头像 -->
     <el-dropdown class="setting-item" trigger="click">
       <div class="flex-center h100% p10px">
         <img
+          alt=""
           :src="userStore.user.avatar + '?imageView2/1/w/80/h/80'"
           class="rounded-full mr-10px w24px w24px"
         />
@@ -65,7 +73,8 @@ import {
 } from "@/store";
 import defaultSettings from "@/settings";
 import { DeviceEnum } from "@/enums/DeviceEnum";
-
+import { ThemeEnum } from "@/enums/ThemeEnum";
+import { Moon, Sunny } from "@element-plus/icons-vue";
 const appStore = useAppStore();
 const tagsViewStore = useTagsViewStore();
 const userStore = useUserStore();
@@ -77,6 +86,15 @@ const router = useRouter();
 const isMobile = computed(() => appStore.device === DeviceEnum.MOBILE);
 
 const { isFullscreen, toggle } = useFullscreen();
+
+/**
+ * 切换主题
+ */
+const isDark = ref<boolean>(settingStore.theme === ThemeEnum.DARK);
+const toggleTheme = () => {
+  isDark.value = !isDark.value;
+  settingStore.changeTheme(isDark.value ? ThemeEnum.DARK : ThemeEnum.LIGHT);
+};
 
 /**
  * 注销
@@ -113,7 +131,9 @@ function logout() {
     background: rgb(0 0 0 / 10%);
   }
 }
-
+.toggle-theme-btn {
+  margin-top: 12px;
+}
 .layout-top,
 .layout-mix {
   .setting-item,

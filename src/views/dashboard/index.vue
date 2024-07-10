@@ -8,13 +8,17 @@
         <el-col :span="18" :xs="24">
           <div class="flex h-full items-center">
             <img
+              alt=""
               class="w-20 h-20 mr-5 rounded-full"
               :src="userStore.user.avatar + '?imageView2/1/w/80/h/80'"
             />
             <div>
-              <p>{{ greetings }}</p>
-              <p class="text-sm text-gray">
-                {{ dailySentence }}
+              <p>{{ welcome.greetings }}</p>
+              <p class="text-sm text-blue-4">
+                {{ welcome.dailyWords.words }}
+              </p>
+              <p class="text-sm text-gray-4">
+                {{ welcome.dailyWords.translation }}
               </p>
             </div>
           </div>
@@ -41,7 +45,7 @@
     </el-card>
 
     <!-- 数据卡片 -->
-    <el-row :gutter="10" class="mt-3">
+    <el-row :gutter="10" class="mt-3" v-if="isAdmin">
       <el-col
         :xs="24"
         :sm="12"
@@ -79,7 +83,7 @@
     </el-row>
 
     <!-- Echarts 图表 -->
-    <el-row :gutter="10" class="mt-3">
+    <el-row :gutter="10" class="mt-3" v-if="isAdmin">
       <el-col
         :xs="24"
         :sm="12"
@@ -111,24 +115,34 @@ defineOptions({
 import { useUserStore } from "@/store/modules/user";
 import { useTransition, TransitionPresets } from "@vueuse/core";
 import CommonAPI, { DailyWordsResult } from "@/api/common";
-import StatsAPI, { StatsRecords, MetaData } from "@/api/stats";
+import StatsAPI, { MetaData, StatsRecords } from "@/api/stats";
 
 const userStore = useUserStore();
+const isAdmin = computed(() => {
+  return userStore.user.admin === 1;
+});
 const date: Date = new Date();
 
-const greetings = computed(() => {
-  const hours = date.getHours();
-  if (hours >= 6 && hours < 8) {
-    return "晨起披衣出草堂，轩窗已自喜微凉🌅！";
-  } else if (hours >= 8 && hours < 12) {
-    return "上午好，" + userStore.user.username + "！";
-  } else if (hours >= 12 && hours < 18) {
-    return "下午好，" + userStore.user.username + "！";
-  } else if (hours >= 18 && hours < 24) {
-    return "晚上好，" + userStore.user.username + "！";
-  } else {
-    return "偷偷向银河要了一把碎星，只等你闭上眼睛撒入你的梦中，晚安🌛！";
-  }
+const welcome = reactive({
+  dailyWords: {
+    words: "生活不止眼前的苟且，还有诗和远方的田野。",
+    translation:
+      "Life is not only about the immediate survival but also about poetry and gaining wider perspectives.",
+  },
+  greetings: computed(() => {
+    const hours = date.getHours();
+    if (hours >= 6 && hours < 8) {
+      return "晨起披衣出草堂，轩窗已自喜微凉🌅！";
+    } else if (hours >= 8 && hours < 12) {
+      return "上午好，" + userStore.user.username + "！";
+    } else if (hours >= 12 && hours < 18) {
+      return "下午好，" + userStore.user.username + "！";
+    } else if (hours >= 18 && hours < 24) {
+      return "晚上好，" + userStore.user.username + "！";
+    } else {
+      return "偷偷向银河要了一把碎星，只等你闭上眼睛撒入你的梦中，晚安🌛！";
+    }
+  }),
 });
 
 const duration = 2000;
@@ -243,12 +257,7 @@ const chartComponent = (item: string) => {
   return defineAsyncComponent(() => import(`./components/${item}.vue`));
 };
 
-const dailySentence = ref("生活不止眼前的苟且，还有诗和远方的田野。");
-onMounted(() => {
-  CommonAPI.getDailyWords().then((res: DailyWordsResult) => {
-    console.log(res);
-    dailySentence.value = res.content;
-  });
+function getMetaData() {
   StatsAPI.getMataData().then((metaData: MetaData) => {
     statisticData.value[0].value = metaData.orderAmount
       ? `￥${metaData.orderAmount}元`
@@ -260,6 +269,8 @@ onMounted(() => {
       ? `￥${metaData.balanceAmount}元`
       : "-";
   });
+}
+function getStatsData() {
   StatsAPI.getStatsData().then((record: StatsRecords) => {
     visitCount.value = record.NOW.userNum;
     cardData.value[0].total = record.ALL.userNum;
@@ -270,6 +281,16 @@ onMounted(() => {
     orderCount.value = record.NOW.consumeNum;
     cardData.value[3].total = record.ALL.consumeAmount;
   });
+}
+onMounted(() => {
+  CommonAPI.getDailyWords().then((res: DailyWordsResult) => {
+    welcome.dailyWords.words = res.translation;
+    welcome.dailyWords.translation = res.content;
+  });
+  getMetaData();
+  if (isAdmin.value) {
+    getStatsData();
+  }
 });
 </script>
 

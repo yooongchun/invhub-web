@@ -17,8 +17,6 @@ export default CommonAPI;
 export interface DailyWordsResult {
   /** 内容（英文） */
   content: string;
-  /** 译文 */
-  note: string;
   /** 释意 */
   translation: string;
 }

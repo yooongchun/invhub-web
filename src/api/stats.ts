@@ -5,7 +5,7 @@ const STATS_BASE_URL = "/api/v2/stats";
 class StatsAPI {
   /** 统计数据 */
   static getStatsData() {
-    return request<StatsRecords>({
+    return request<any, StatsRecords>({
       url: `${STATS_BASE_URL}/data`,
       method: "get",
     });
@@ -13,7 +13,7 @@ class StatsAPI {
 
   /** meta数据 */
   static getMataData() {
-    return request<MetaData>({
+    return request<any, MetaData>({
       url: `${STATS_BASE_URL}/meta`,
       method: "get",
     });

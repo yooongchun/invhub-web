@@ -80,38 +80,37 @@ export const usePermissionStore = defineStore("permission", () => {
    * @returns
    */
   function generateRoutes(roles: string[]) {
-    const routesData: RouteRecordRaw[] = [
-      {
-        path: "/api",
-        component: Layout,
-        name: "/api",
-        meta: {
-          title: "接口文档",
-          icon: "api",
-          hidden: false,
-          alwaysShow: true,
-          params: null,
-        },
-        children: [
-          {
-            path: "apifox",
-            component: modules["../../views/demo/api/apifox.vue"],
-            name: "Apifox",
-            meta: {
-              title: "Apifox",
-              icon: "api",
-              hidden: false,
-              keepAlive: true,
-              alwaysShow: false,
-              params: null,
-            },
-          },
-        ],
-      },
-    ];
+    const routesData: RouteRecordRaw[] = [];
     // 当为Admin的时候，添加系统管理菜单
     if (roles.includes("admin")) {
       const adminRoutesData: RouteRecordRaw[] = [
+        {
+          path: "/api",
+          component: Layout,
+          name: "/api",
+          meta: {
+            title: "接口文档",
+            icon: "api",
+            hidden: false,
+            alwaysShow: true,
+            params: null,
+          },
+          children: [
+            {
+              path: "apifox",
+              component: modules["../../views/demo/api/apifox.vue"],
+              name: "Apifox",
+              meta: {
+                title: "Apifox",
+                icon: "api",
+                hidden: false,
+                keepAlive: true,
+                alwaysShow: false,
+                params: null,
+              },
+            },
+          ],
+        },
         {
           path: "/system",
           component: Layout,

@@ -64,10 +64,9 @@ class UserAPI {
   /**
    * 修改用户
    *
-   * @param id 用户ID
    * @param data 用户表单数据
    */
-  static update(id: number, data: UserForm) {
+  static update(data: UserForm) {
     return request({
       url: `${USER_BASE_URL}/`,
       method: "put",

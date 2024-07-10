@@ -43,10 +43,10 @@
 
             <el-form-item>
               <el-button type="primary" @click="handleQuery"
-                ><i-ep-search />搜索</el-button
+                ><el-icon><Search /></el-icon>搜索</el-button
               >
               <el-button @click="handleResetQuery">
-                <i-ep-refresh />
+                <el-icon><Refresh /></el-icon>
                 重置</el-button
               >
             </el-form-item>
@@ -58,13 +58,13 @@
             <div class="flex-x-between">
               <div>
                 <el-button type="success" @click="handleOpenDialog()"
-                  ><i-ep-plus />新增</el-button
+                  ><el-icon><Plus /></el-icon>新增</el-button
                 >
                 <el-button
                   type="danger"
                   :disabled="removeIds.length === 0"
                   @click="handleDelete()"
-                  ><i-ep-remove-filled />禁用</el-button
+                  ><el-icon><RemoveFilled /></el-icon>禁用</el-button
                 >
               </div>
               <div>
@@ -72,10 +72,10 @@
                   class="ml-3"
                   @click="handleOpenImportDialog"
                   :disabled="'true'"
-                  ><template #icon><i-ep-upload /></template>导入</el-button
+                  ><template #icon><Upload /></template>导入</el-button
                 >
                 <el-button class="ml-3" @click="handleExport" :disabled="'true'"
-                  ><template #icon><i-ep-download /></template>导出</el-button
+                  ><template #icon><Download /></template>导出</el-button
                 >
               </div>
             </div>
@@ -86,13 +86,14 @@
             :data="pageData"
             @selection-change="handleSelectionChange"
           >
-            <el-table-column type="selection" width="50" align="center" />
+            <el-table-column type="selection" align="center" />
             <el-table-column key="id" label="编号" align="center" prop="id" />
             <el-table-column
               key="username"
               label="用户名"
               align="center"
               prop="username"
+              width="200"
             />
             <el-table-column
               label="手机号"
@@ -113,7 +114,7 @@
               prop="balance"
             >
               <template #default="scope">
-                <el-tag type="'warning'">￥{{ scope.row.balance }}</el-tag>
+                <el-tag type="warning">￥{{ scope.row.balance }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column label="状态" align="center" prop="deleted">
@@ -136,14 +137,14 @@
                   size="small"
                   link
                   @click="handleResetPassword(scope.row)"
-                  ><i-ep-refresh-left />重置密码</el-button
+                  ><el-icon><RefreshLeft /></el-icon>重置密码</el-button
                 >
                 <el-button
                   type="primary"
                   link
                   size="small"
                   @click="handleOpenDialog(scope.row.id)"
-                  ><i-ep-edit />编辑</el-button
+                  ><el-icon><Edit /></el-icon>编辑</el-button
                 >
                 <el-button
                   type="danger"
@@ -151,7 +152,7 @@
                   size="small"
                   v-if="scope.row.deleted === 0"
                   @click="handleDelete(scope.row.id)"
-                  ><i-ep-remove-filled />禁用</el-button
+                  ><el-icon><RemoveFilled /></el-icon>禁用</el-button
                 >
                 <el-button
                   type="success"
@@ -159,7 +160,7 @@
                   size="small"
                   v-else
                   @click="handleEnable(scope.row.id)"
-                  ><i-ep-circle-check-filled />启用</el-button
+                  ><el-icon><CircleCheckFilled /></el-icon>启用</el-button
                 >
               </template>
             </el-table-column>
@@ -262,13 +263,24 @@
 </template>
 
 <script setup lang="ts">
+import {
+  CircleCheckFilled,
+  Download,
+  Edit,
+  Plus,
+  Refresh,
+  RefreshLeft,
+  RemoveFilled,
+  Search,
+  Upload,
+} from "@element-plus/icons-vue";
+
 defineOptions({
   name: "User",
   inheritAttrs: false,
 });
 
 import UserAPI, { UserForm, UserPageQuery, UserPageVO } from "@/api/user";
-
 const queryFormRef = ref(ElForm);
 const userFormRef = ref(ElForm);
 
@@ -276,8 +288,6 @@ const loading = ref(false);
 const removeIds = ref([]);
 const total = ref(0);
 const pageData = ref<UserPageVO[]>();
-/** 角色下拉选项 */
-const roleOptions = ref<OptionType[]>();
 /** 用户查询参数  */
 const queryParams = reactive<UserPageQuery>({
   pageNum: 1,
@@ -326,7 +336,7 @@ const rules = reactive({
   ],
   phone: [
     {
-      pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
+      pattern: /^1[3456789][0-9]\d{8}$/,
       message: "请输入正确的手机号码",
       trigger: "blur",
     },
@@ -420,7 +430,7 @@ const handleSubmit = useThrottleFn(() => {
       const userId = formData.id;
       loading.value = true;
       if (userId) {
-        UserAPI.update(userId, formData)
+        UserAPI.update(formData)
           .then(() => {
             ElMessage.success("修改用户成功");
             handleCloseDialog();
@@ -468,7 +478,7 @@ function handleDelete(id?: number) {
   );
 }
 /** 删除用户 */
-function handleEnable(id?: number) {
+function handleEnable(id: number) {
   ElMessageBox.confirm("确认解禁用户?", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
