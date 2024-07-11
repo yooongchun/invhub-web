@@ -8,7 +8,7 @@ class InvAPI {
    */
   static getPage(queryParams: InvPageQuery) {
     return request<any, InvData>({
-      url: `${INV_BASE_URL}/list`,
+      url: `${INV_BASE_URL}/info/list`,
       method: "get",
       params: queryParams,
     });
@@ -46,23 +46,20 @@ export interface InvData {
   invNum: string;
   /** 发票代码 */
   invCode: string;
-  invTax: string,
   /** 开票日期 */
   invDate: string;
+  /** 税额 */
+  tax: string,
   /** 金额 */
   amount: number;
   /** 校验码 */
-  invCheckCode: string;
-  /** 发票类型 */
-  invType : string;
+  checkCode: string;
   /** 校验状态 */
   checked: number;
   /** 报销状态 */
   reimbursed: number;
   /** 报销人 */
   owner: string;
-  /** 是否已查验 */
-  invChecked: number;
   /** 查验结果 */
-  invCheckResult: string;
+  invChecked: string;
 }

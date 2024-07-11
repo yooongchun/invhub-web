@@ -17,17 +17,19 @@
               />
             </el-form-item>
 
-            <el-form-item label="状态" prop="status">
+            <el-form-item label="查验状态" prop="invChecked">
               <el-select
-                v-model="queryParams.status"
+                v-model="queryParams.invChecked"
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
-              >
-                <el-option label="初始化" value="0"/>
-                <el-option label="处理中" value="1"/>
-                <el-option label="成功" value="2"/>
-                <el-option label="失败" value="-1"/>
+                >
+                <el-option label="未查验" value="10"/>
+                <el-option label="查验中" value="20"/>
+                <el-option label="已查验" value="30"/>
+                <el-option label="查无此票" value="31"/>
+                <el-option label="不一致" value="32"/>
+                <el-option label="查验失败" value="40"/>
               </el-select>
             </el-form-item>
 
@@ -157,7 +159,6 @@
             @selection-change="handleSelectionChange"
           >
             <el-table-column type="selection" align="center"/>
-            <el-table-column key="id" label="编号" align="center" prop="id" width="65"/>
             <el-table-column
               key="invCode"
               label="发票代码"
@@ -180,13 +181,13 @@
             <el-table-column
               label="校验码"
               align="center"
-              prop="invCheckCode"
+              prop="checkCode"
               width="80"
             />
             <el-table-column
               label="税额"
               align="center"
-              prop="invTax"
+              prop="tax"
               width="100"
             />
             <el-table-column
@@ -212,8 +213,24 @@
                 <el-tag type="danger" v-else-if="scope.row.reimbursed == 3"> 已拒</el-tag>
               </template>
             </el-table-column>
+            <el-table-column label="查验结果" align="center" prop="invChecked">
+              <template #default="scope">
+                <el-tag type="info" v-if="scope.row.invChecked == 10"> 未查验</el-tag>
+                <el-tag type="warning" v-else-if="scope.row.invChecked == 20">
+                  <el-icon class="is-loading">
+                    <Loading/>
+                  </el-icon>
+                  查验中
+                </el-tag>
+                <el-tag type="success" v-else-if="scope.row.invChecked == 30"> 已查验</el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 31"> 查无此票</el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 32"> 不一致</el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 33"> 已作废</el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 40"> 查验失败</el-tag>
+              </template>
+            </el-table-column>
             <el-table-column label="报销人" align="center" prop="owner"/>
-            <el-table-column label="操作" fixed="right" width="220">
+            <el-table-column label="操作" fixed="right" width="230">
               <template #default="scope">
                 <el-button
                   type="primary"
@@ -224,7 +241,7 @@
                   <el-icon>
                     <Picture/>
                   </el-icon>
-                  查看文件
+                  文件
                 </el-button
                 >
                 <el-button
@@ -236,7 +253,7 @@
                   <el-icon>
                     <Postcard/>
                   </el-icon>
-                  查验结果
+                  结果
                 </el-button
                 >
                 <el-button
@@ -248,7 +265,7 @@
                   <el-icon>
                     <VideoPlay/>
                   </el-icon>
-                  重新查验
+                  重查
                 </el-button
                 >
                 <el-button
@@ -260,7 +277,7 @@
                   <el-icon>
                     <Edit/>
                   </el-icon>
-                  手动修改
+                  修改
                 </el-button
                 >
               </template>
@@ -384,22 +401,7 @@ const userFormRef = ref(ElForm);
 const loading = ref(false);
 const removeIds = ref([]);
 const total = ref(0);
-const pageData = ref<InvData[]>([{
-  id: 10011,
-  invCode: "24117000000213940904",
-  invNum: "65432123211121",
-  amount: 1000,
-  invTax: 100,
-  invType: "增值税普通发票",
-  invCheckCode: "123456",
-  invDate: "2021-09-01",
-  checked: 1,
-  reimbursed: 1,
-  owner: "张三",
-  invChecked: 1,
-  invCheckResult: "查无此票",
-}]);
-
+const pageData = ref<InvData[]>();
 /** 用户查询参数  */
 const queryParams = reactive<InvPageQuery>({
   pageNum: 1,
@@ -431,6 +433,7 @@ const formData = reactive({
   status: 0,
 });
 
+/** 查询 */
 function handleQuery() {
   loading.value = true;
   InvAPI.getPage(queryParams)
@@ -443,7 +446,16 @@ function handleQuery() {
     });
 }
 
+/** 重置查询 */
 function handleResetQuery() {
+  queryFormRef.value.resetFields();
+  dateTimeRange.value = "";
+  queryParams.pageNum = 1;
+  queryParams.startTime = undefined;
+  queryParams.endTime = undefined;
+  queryParams.minAmount = undefined;
+  queryParams.maxAmount = undefined;
+  handleQuery();
 }
 
 function handleOpenDialog() {
