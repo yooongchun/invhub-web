@@ -44,13 +44,24 @@
             target="_blank"
             href="https://gitee.com/yczha/apihub-web"
           >
-            <el-dropdown-item>{{ $t("navbar.gitee") }}</el-dropdown-item>
+            <el-dropdown-item>
+              <el-icon>
+                <UserFilled/>
+              </el-icon>
+              <el-text type="primary">个人中心</el-text>
+            </el-dropdown-item>
           </a>
-          <a target="_blank" href="https://juejin.cn/post/7228990409909108793">
-            <el-dropdown-item>{{ $t("navbar.document") }}</el-dropdown-item>
-          </a>
+          <el-dropdown-item divided @click="showDialog=true">
+            <el-icon>
+              <CreditCard/>
+            </el-icon>
+            <el-text type="primary">&nbsp;&nbsp;充&nbsp;&nbsp;值</el-text>
+          </el-dropdown-item>
           <el-dropdown-item divided @click="logout">
-            {{ $t("navbar.logout") }}
+            <el-icon>
+              <SwitchButton/>
+            </el-icon>
+            <el-text type="primary">退出登录</el-text>
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -59,10 +70,18 @@
     <!-- 设置 -->
     <template v-if="defaultSettings.showSettings">
       <div class="setting-item" @click="settingStore.settingsVisible = true">
-        <svg-icon icon-class="setting" />
+        <svg-icon icon-class="setting"/>
       </div>
     </template>
   </div>
+  <el-dialog
+    v-model="showDialog"
+    title="支付页面"
+    width="500"
+    center
+  >
+    <Payment :exit="!showDialog" @exitMe="handleClose"/>
+  </el-dialog>
 </template>
 <script setup lang="ts">
 import {
@@ -72,9 +91,11 @@ import {
   useSettingsStore,
 } from "@/store";
 import defaultSettings from "@/settings";
-import { DeviceEnum } from "@/enums/DeviceEnum";
-import { ThemeEnum } from "@/enums/ThemeEnum";
-import { Moon, Sunny } from "@element-plus/icons-vue";
+import {DeviceEnum} from "@/enums/DeviceEnum";
+import {ThemeEnum} from "@/enums/ThemeEnum";
+import {CreditCard, Moon, Sunny, SwitchButton, UserFilled} from "@element-plus/icons-vue";
+import Payment from "@/components/Payment/index.vue";
+
 const appStore = useAppStore();
 const tagsViewStore = useTagsViewStore();
 const userStore = useUserStore();
@@ -84,8 +105,8 @@ const route = useRoute();
 const router = useRouter();
 
 const isMobile = computed(() => appStore.device === DeviceEnum.MOBILE);
-
-const { isFullscreen, toggle } = useFullscreen();
+const showDialog = ref(false);
+const {isFullscreen, toggle} = useFullscreen();
 
 /**
  * 切换主题
@@ -116,6 +137,12 @@ function logout() {
       });
   });
 }
+
+function handleClose() {
+  showDialog.value = false;
+  window.location.reload();
+}
+
 </script>
 <style lang="scss" scoped>
 .setting-item {
@@ -131,9 +158,11 @@ function logout() {
     background: rgb(0 0 0 / 10%);
   }
 }
+
 .toggle-theme-btn {
   margin-top: 12px;
 }
+
 .layout-top,
 .layout-mix {
   .setting-item,

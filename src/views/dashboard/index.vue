@@ -180,14 +180,14 @@ const statisticData = ref([
   {
     value: "-",
     iconClass: "money",
-    title: "充值",
+    title: "已充值",
     key: "charge",
     suffix: "",
   },
   {
     value: "-",
     iconClass: "order",
-    title: "消费",
+    title: "已消费",
     key: "consume",
   },
   {

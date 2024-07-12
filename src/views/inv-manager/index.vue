@@ -23,7 +23,7 @@
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
-                >
+              >
                 <el-option label="未查验" value="10"/>
                 <el-option label="查验中" value="20"/>
                 <el-option label="已查验" value="30"/>
@@ -489,5 +489,6 @@ function handleEdit(id: number) {
 }
 
 onMounted(() => {
+  handleQuery();
 });
 </script>
