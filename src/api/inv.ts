@@ -37,6 +37,8 @@ export interface InvPageQuery extends PageQuery {
   minAmount?: number;
   /** 最大金额 */
   maxAmount?: number;
+  /** 查验状态*/
+  invChecked: number;
 }
 
 export interface InvData {

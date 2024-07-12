@@ -16,7 +16,7 @@
       >
         <template #prefix>
           <el-icon class="el-input__icon">
-            <Iphone />
+            <Iphone/>
           </el-icon>
         </template>
       </el-input>
@@ -29,17 +29,23 @@
         autocomplete="off"
       >
         <template #prefix>
-          <el-icon class="el-input__icon"><Unlock /></el-icon>
+          <el-icon class="el-input__icon">
+            <Unlock/>
+          </el-icon>
         </template>
         <template #suffix>
           <el-icon
             v-if="isShowPassword"
             @click="isShowPassword = !isShowPassword"
-            ><View
-          /></el-icon>
+          >
+            <View
+            />
+          </el-icon>
           <el-icon v-else @click="isShowPassword = !isShowPassword"
-            ><Hide
-          /></el-icon>
+          >
+            <Hide
+            />
+          </el-icon>
         </template>
       </el-input>
     </el-form-item>
@@ -55,18 +61,19 @@
         >
           <template #prefix>
             <el-icon class="el-input__icon">
-              <ChatDotSquare />
+              <ChatDotSquare/>
             </el-icon>
           </template>
         </el-input>
       </el-col>
-      <el-col :span="1" />
+      <el-col :span="1"/>
       <el-col :span="8">
         <el-button
           class="login-content-code"
           @click="handleVerifyCode"
           :disabled="!enableSendVerifyCode"
-          >获取验证码</el-button
+        >获取验证码
+        </el-button
         >
       </el-col>
     </el-form-item>
@@ -87,11 +94,11 @@
           autocomplete="off"
         >
           <template #prefix>
-            <svg-icon icon-class="captcha" class="mx-2" />
+            <svg-icon icon-class="captcha" class="mx-2"/>
           </template>
         </el-input>
       </el-col>
-      <el-col :span="1" />
+      <el-col :span="1"/>
       <el-col :span="8">
         <el-image
           @click="getCaptcha"
@@ -124,10 +131,10 @@ import {
   Unlock,
   View,
 } from "@element-plus/icons-vue";
-import AuthAPI, { LoginData, RegisterData } from "@/api/auth";
-import { FormInstance } from "element-plus";
-import { isEmail, isPhone } from "@/utils/util";
-import { TOKEN_KEY } from "@/enums/CacheEnum";
+import AuthAPI, {LoginData, RegisterData} from "@/api/auth";
+import {FormInstance} from "element-plus";
+import {isEmail, isPhone} from "@/utils/util";
+import {TOKEN_KEY} from "@/enums/CacheEnum";
 
 // 定义变量内容
 const router = useRouter();
@@ -140,6 +147,17 @@ const isShowPassword = ref(false);
 const captchaBase64 = ref();
 // 登录表单ref
 const loginFormRef = ref<FormInstance>();
+
+function getRandomAvatar() {
+  const avatarNames = [
+    "Shadow", "Luna", "Willow", "Mittens",
+    "Miss%20kitty", "Felix", "Cookie", "George",
+    "Whiskers", "Milo", "Misty", "Annie",
+    "Boots", "Chloe", "Cali", "Sheba",
+    "Smokey", "Pumpkin", "Garfield", "Mia"];
+  const avatarLink = "https://api.dicebear.com/9.x/thumbs/svg?seed=";
+  return avatarLink + avatarNames[Math.floor(Math.random() * avatarNames.length)];
+}
 
 /** 获取验证码 */
 function getCaptcha() {
@@ -225,6 +243,7 @@ function handleVerifyCode() {
     }
   });
 }
+
 /** 注册表单提交 */
 function handleRegisterSubmit() {
   loginFormRef.value?.validate((valid: boolean) => {
@@ -244,12 +263,13 @@ function handleRegisterSubmit() {
         registerData.value.phone = registerData.value.email;
         registerData.value.email = "";
       }
+      registerData.value.avatar = getRandomAvatar();
       loading.value = true;
 
       AuthAPI.register(registerData.value)
         .then((data: any | LoginData) => {
           ElMessage.success("注册成功，为您自动登录！");
-          const { token } = data;
+          const {token} = data;
           localStorage.setItem(TOKEN_KEY, token);
           router.push("/");
         })

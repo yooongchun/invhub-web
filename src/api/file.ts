@@ -28,7 +28,14 @@ class FileAPI {
     return request({
       url: "/api/v1/files",
       method: "delete",
-      params: { filePath: filePath },
+      params: {filePath: filePath},
+    });
+  }
+
+  static previewFile(fileId: number) {
+    return request<any, FilePreview>({
+      url: `/api/v2/file/${fileId}/preview`,
+      method: "get",
     });
   }
 }
@@ -42,5 +49,11 @@ export interface FileInfo {
   /** 文件名 */
   name: string;
   /** 文件路径 */
+  url: string;
+}
+
+
+export interface FilePreview {
+  fileType: string;
   url: string;
 }

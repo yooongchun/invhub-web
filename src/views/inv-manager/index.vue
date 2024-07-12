@@ -2,7 +2,7 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <el-col :lg="2" :xs="24" class="mb-[12px]"/>
+      <el-col :lg="2" :xs="24" class="mb-[12px]" />
       <!-- 发票列表 -->
       <el-col :lg="20" :xs="24">
         <div class="search-container">
@@ -24,12 +24,12 @@
                 clearable
                 class="!w-[100px]"
               >
-                <el-option label="未查验" value="10"/>
-                <el-option label="查验中" value="20"/>
-                <el-option label="已查验" value="30"/>
-                <el-option label="查无此票" value="31"/>
-                <el-option label="不一致" value="32"/>
-                <el-option label="查验失败" value="40"/>
+                <el-option label="未查验" value="10" />
+                <el-option label="查验中" value="20" />
+                <el-option label="已查验" value="30" />
+                <el-option label="查无此票" value="31" />
+                <el-option label="不一致" value="32" />
+                <el-option label="查验失败" value="40" />
               </el-select>
             </el-form-item>
 
@@ -40,8 +40,8 @@
                 clearable
                 class="!w-[100px]"
               >
-                <el-option label="未校验" value="0"/>
-                <el-option label="已校验" value="1"/>
+                <el-option label="未校验" value="0" />
+                <el-option label="已校验" value="1" />
               </el-select>
             </el-form-item>
             <el-form-item label="报销进度" prop="reimbursed">
@@ -51,10 +51,10 @@
                 clearable
                 class="!w-[100px]"
               >
-                <el-option label="未报" value="0"/>
-                <el-option label="在途" value="2"/>
-                <el-option label="已报" value="1"/>
-                <el-option label="已拒" value="3"/>
+                <el-option label="未报" value="0" />
+                <el-option label="在途" value="2" />
+                <el-option label="已报" value="1" />
+                <el-option label="已拒" value="3" />
               </el-select>
             </el-form-item>
 
@@ -86,21 +86,18 @@
             </el-form-item>
 
             <el-form-item>
-              <el-button type="primary" @click="handleQuery"
-              >
+              <el-button type="primary" @click="handleQuery">
                 <el-icon>
-                  <Search/>
+                  <Search />
                 </el-icon>
                 搜索
-              </el-button
-              >
+              </el-button>
               <el-button @click="handleResetQuery">
                 <el-icon>
-                  <Refresh/>
+                  <Refresh />
                 </el-icon>
                 重置
-              </el-button
-              >
+              </el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -109,25 +106,22 @@
           <template #header>
             <div class="flex-x-between">
               <div>
-                <el-button type="success" @click="handleOpenDialog()"
-                >
+                <el-button type="success" @click="handleOpenDialog()">
                   <el-icon>
-                    <Plus/>
+                    <Plus />
                   </el-icon>
                   新增
-                </el-button
-                >
+                </el-button>
                 <el-button
                   type="danger"
                   :disabled="removeIds.length === 0"
                   @click="handleDelete()"
                 >
                   <el-icon>
-                    <RemoveFilled/>
+                    <RemoveFilled />
                   </el-icon>
                   删除
-                </el-button
-                >
+                </el-button>
               </div>
               <div>
                 <el-button
@@ -136,19 +130,16 @@
                   @click="handleOpenImportDialog"
                 >
                   <template #icon>
-                    <Download/>
+                    <Download />
                   </template>
                   导入
-                </el-button
-                >
-                <el-button class="ml-3" @click="handleExport"
-                >
+                </el-button>
+                <el-button class="ml-3" @click="handleExport">
                   <template #icon>
-                    <Upload/>
+                    <Upload />
                   </template>
                   导出
-                </el-button
-                >
+                </el-button>
               </div>
             </div>
           </template>
@@ -158,7 +149,7 @@
             :data="pageData"
             @selection-change="handleSelectionChange"
           >
-            <el-table-column type="selection" align="center"/>
+            <el-table-column type="selection" align="center" />
             <el-table-column
               key="invCode"
               label="发票代码"
@@ -198,52 +189,70 @@
             />
             <el-table-column label="已校验" align="center" prop="checked">
               <template #default="scope">
-                <el-tag :type="scope.row.checked == 1 ? 'success' : 'info'">{{
-                    scope.row.checked == 1 ? "是" : "否"
-                  }}
+                <el-tag :type="scope.row.checked == 1 ? 'success' : 'info'"
+                  >{{ scope.row.checked == 1 ? "是" : "否" }}
                 </el-tag>
               </template>
             </el-table-column>
 
             <el-table-column label="报销进度" align="center" prop="reimbursed">
               <template #default="scope">
-                <el-tag type="info" v-if="scope.row.reimbursed == 0"> 未报</el-tag>
-                <el-tag type="warning" v-else-if="scope.row.reimbursed == 1"> 在途</el-tag>
-                <el-tag type="success" v-else-if="scope.row.reimbursed == 2"> 已报</el-tag>
-                <el-tag type="danger" v-else-if="scope.row.reimbursed == 3"> 已拒</el-tag>
+                <el-tag type="info" v-if="scope.row.reimbursed == 0">
+                  未报
+                </el-tag>
+                <el-tag type="warning" v-else-if="scope.row.reimbursed == 1">
+                  在途
+                </el-tag>
+                <el-tag type="success" v-else-if="scope.row.reimbursed == 2">
+                  已报
+                </el-tag>
+                <el-tag type="danger" v-else-if="scope.row.reimbursed == 3">
+                  已拒
+                </el-tag>
               </template>
             </el-table-column>
             <el-table-column label="查验结果" align="center" prop="invChecked">
               <template #default="scope">
-                <el-tag type="info" v-if="scope.row.invChecked == 10"> 未查验</el-tag>
+                <el-tag type="info" v-if="scope.row.invChecked == 10">
+                  未查验
+                </el-tag>
                 <el-tag type="warning" v-else-if="scope.row.invChecked == 20">
                   <el-icon class="is-loading">
-                    <Loading/>
+                    <Loading />
                   </el-icon>
                   查验中
                 </el-tag>
-                <el-tag type="success" v-else-if="scope.row.invChecked == 30"> 已查验</el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 31"> 查无此票</el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 32"> 不一致</el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 33"> 已作废</el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 40"> 查验失败</el-tag>
+                <el-tag type="success" v-else-if="scope.row.invChecked == 30">
+                  已查验
+                </el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 31">
+                  查无此票
+                </el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 32">
+                  不一致
+                </el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 33">
+                  已作废
+                </el-tag>
+                <el-tag type="danger" v-else-if="scope.row.invChecked == 40">
+                  查验失败
+                </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="报销人" align="center" prop="owner"/>
+            <el-table-column label="报销人" align="center" prop="owner" />
             <el-table-column label="操作" fixed="right" width="230">
               <template #default="scope">
                 <el-button
                   type="primary"
                   size="small"
                   link
-                  @click="handleViewFile(scope.row)"
+                  @click="handleViewFile(scope.row.id)"
                 >
                   <el-icon>
-                    <Picture/>
+                    <Picture />
                   </el-icon>
-                  文件
-                </el-button
-                >
+                  查看
+                </el-button>
                 <el-button
                   type="primary"
                   link
@@ -251,11 +260,10 @@
                   @click="handleViewCheckResult(scope.row.id)"
                 >
                   <el-icon>
-                    <Postcard/>
+                    <Postcard />
                   </el-icon>
-                  结果
-                </el-button
-                >
+                  查验
+                </el-button>
                 <el-button
                   type="primary"
                   link
@@ -263,11 +271,10 @@
                   @click="handleCheckAgain(scope.row.id)"
                 >
                   <el-icon>
-                    <VideoPlay/>
+                    <VideoPlay />
                   </el-icon>
                   重查
-                </el-button
-                >
+                </el-button>
                 <el-button
                   type="success"
                   link
@@ -275,11 +282,10 @@
                   @click="handleEdit(scope.row.id)"
                 >
                   <el-icon>
-                    <Edit/>
+                    <Edit />
                   </el-icon>
                   修改
-                </el-button
-                >
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -373,27 +379,45 @@
     </el-drawer>
 
     <!-- 用户导入弹窗 -->
-    <user-import v-model:visible="importDialogVisible"/>
+    <user-import v-model:visible="importDialogVisible" />
+    <!-- 文件查验表单 -->
+    <el-dialog
+      v-if="previewFile.showDialog"
+      v-model="previewFile.showDialog"
+      title="文件预览"
+      center
+      :fullscreen="true"
+    >
+      <PDF
+        :src="previewFile.url"
+        v-loading.fullscreen.lock="!previewFile.url"
+      />
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  Download,
-  Edit, Picture,
-  Plus, Postcard,
-  Refresh,
-  RemoveFilled,
-  Search,
-  Upload, VideoPlay,
-} from "@element-plus/icons-vue";
-
 defineOptions({
   name: "User",
   inheritAttrs: false,
 });
 
-import InvAPI, {InvPageQuery, InvData} from "@/api/inv";
+import {
+  Download,
+  Edit,
+  Picture,
+  Plus,
+  Postcard,
+  Refresh,
+  RemoveFilled,
+  Search,
+  Upload,
+  VideoPlay,
+} from "@element-plus/icons-vue";
+import PDF from "pdf-vue3";
+
+import InvAPI, { InvPageQuery, InvData } from "@/api/inv";
+import FileAPI, { FilePreview } from "@/api/file";
 
 const queryFormRef = ref(ElForm);
 const userFormRef = ref(ElForm);
@@ -403,12 +427,13 @@ const removeIds = ref([]);
 const total = ref(0);
 const pageData = ref<InvData[]>();
 /** 用户查询参数  */
-const queryParams = reactive<InvPageQuery>({
+const queryParams = reactive<InvPageQuery>(<InvPageQuery>{
   pageNum: 1,
   pageSize: 10,
 });
 
 const dateTimeRange = ref("");
+
 watch(dateTimeRange, (newVal) => {
   if (newVal) {
     queryParams.startTime = newVal[0];
@@ -433,11 +458,17 @@ const formData = reactive({
   status: 0,
 });
 
+const previewFile = reactive({
+  fileType: "",
+  url: "",
+  showDialog: false,
+});
+
 /** 查询 */
 function handleQuery() {
   loading.value = true;
   InvAPI.getPage(queryParams)
-    .then((res) => {
+    .then((res: InvData) => {
       pageData.value = res.records;
       total.value = res.total;
     })
@@ -458,35 +489,31 @@ function handleResetQuery() {
   handleQuery();
 }
 
-function handleOpenDialog() {
+function handleOpenDialog() {}
+
+function handleDelete() {}
+
+function handleSelectionChange() {}
+
+function handleOpenImportDialog() {}
+
+function handleExport() {}
+
+function handleCloseDialog() {}
+
+async function handleViewFile(id: number) {
+  previewFile.showDialog = true;
+  FileAPI.previewFile(id).then((res: FilePreview) => {
+    previewFile.fileType = res.fileType;
+    previewFile.url = "https://hymhub.github.io/pdf-vue3/";
+  });
 }
 
-function handleDelete() {
-}
+function handleViewCheckResult(id: number) {}
 
-function handleSelectionChange() {
-}
+function handleCheckAgain(id: number) {}
 
-function handleOpenImportDialog() {
-}
-
-function handleExport() {
-}
-
-function handleCloseDialog() {
-}
-
-function handleViewFile(id: number) {
-}
-
-function handleViewCheckResult(id: number) {
-}
-
-function handleCheckAgain(id: number) {
-}
-
-function handleEdit(id: number) {
-}
+function handleEdit(id: number) {}
 
 onMounted(() => {
   handleQuery();

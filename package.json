@@ -59,6 +59,7 @@
     "nprogress": "^0.2.0",
     "path-browserify": "^1.0.1",
     "path-to-regexp": "^6.2.2",
+    "pdf-vue3": "^1.0.12",
     "pinia": "^2.1.7",
     "qrcodejs2-fixes": "^0.0.2",
     "sockjs-client": "1.6.1",

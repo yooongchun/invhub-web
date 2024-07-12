@@ -57,7 +57,6 @@ import vueQr from 'vue-qr/src/packages/vue-qr.vue'
 import {useSettingsStore} from "@/store";
 import Scan from "@/assets/icons/scan.svg";
 import AlipayLogo from "@/assets/icons/alipay-logo.svg";
-import router from "@/router";
 
 const settingStore = useSettingsStore();
 const isDark = computed(() => settingStore.theme === ThemeEnum.DARK);
