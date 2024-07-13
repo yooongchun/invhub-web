@@ -1,6 +1,7 @@
 import request from "@/utils/request";
 
 const INV_BASE_URL = "/api/v2/inv/info";
+const INV_DETAIL_URL = "/api/v2/inv/detail";
 
 class InvAPI {
   /**
@@ -41,6 +42,13 @@ class InvAPI {
     return request({
       url: `${INV_BASE_URL}/${ids}`,
       method: "delete",
+    });
+  }
+
+  static parseData(fileId: number) {
+    return request({
+      url: `${INV_DETAIL_URL}/parse?fileId=${fileId}`,
+      method: "post",
     });
   }
 }
