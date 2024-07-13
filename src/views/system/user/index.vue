@@ -233,15 +233,15 @@
 
         <el-form-item label="管理员" prop="admin">
           <el-radio-group v-model="formData.admin">
-            <el-radio :label="1">是</el-radio>
-            <el-radio :label="0">否</el-radio>
+            <el-radio :value="1">是</el-radio>
+            <el-radio :value="0">否</el-radio>
           </el-radio-group>
         </el-form-item>
 
         <el-form-item label="状  &nbsp; 态" prop="deleted">
           <el-radio-group v-model="formData.deleted">
-            <el-radio :label="0">正常</el-radio>
-            <el-radio :label="1">禁用</el-radio>
+            <el-radio :value="0">正常</el-radio>
+            <el-radio :value="1">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

@@ -6,10 +6,14 @@
       <!-- 发票列表 -->
       <el-col :lg="20" :xs="24">
         <div class="search-container">
-          <el-form ref="queryFormRef" :model="queryParams" :inline="true">
+          <el-form
+            ref="queryFormRef"
+            :model="queryState.queryParams"
+            :inline="true"
+          >
             <el-form-item label="关键字" prop="keywords">
               <el-input
-                v-model="queryParams.keywords"
+                v-model="queryState.queryParams.keywords"
                 placeholder="发票代码/号码/类型或创建人"
                 clearable
                 style="width: 200px"
@@ -19,7 +23,7 @@
 
             <el-form-item label="查验状态" prop="invChecked">
               <el-select
-                v-model="queryParams.invChecked"
+                v-model="queryState.queryParams.invChecked"
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
@@ -35,7 +39,7 @@
 
             <el-form-item label="人工校验" prop="checked">
               <el-select
-                v-model="queryParams.checked"
+                v-model="queryState.queryParams.checked"
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
@@ -46,7 +50,7 @@
             </el-form-item>
             <el-form-item label="报销进度" prop="reimbursed">
               <el-select
-                v-model="queryParams.reimbursed"
+                v-model="queryState.queryParams.reimbursed"
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
@@ -60,15 +64,15 @@
 
             <el-form-item label="金额范围" prop="amount">
               <el-input-number
-                v-model="queryParams.minAmount"
+                v-model="queryState.queryParams.minAmount"
                 :precision="2"
-                :step="0.1"
+                :step="1"
                 :min="0.1"
               />
               <el-input-number
-                v-model="queryParams.maxAmount"
+                v-model="queryState.queryParams.maxAmount"
                 :precision="2"
-                :step="0.1"
+                :step="1"
                 :min="0.1"
               />
             </el-form-item>
@@ -76,7 +80,7 @@
             <el-form-item label="开票时间">
               <el-date-picker
                 class="!w-[240px]"
-                v-model="dateTimeRange"
+                v-model="queryState.dateTimeRange"
                 type="daterange"
                 range-separator="~"
                 start-placeholder="开始时间"
@@ -114,7 +118,7 @@
                 </el-button>
                 <el-button
                   type="danger"
-                  :disabled="removeIds.length === 0"
+                  :disabled="pageState.removeIds.length === 0"
                   @click="handleDelete()"
                 >
                   <el-icon>
@@ -145,22 +149,22 @@
           </template>
 
           <el-table
-            v-loading="loading"
-            :data="pageData"
+            v-loading="queryState.loading"
+            :data="pageState.pageData"
             @selection-change="handleSelectionChange"
           >
             <el-table-column type="selection" align="center" />
+            <el-table-column
+              label="发票号码"
+              align="center"
+              prop="invNum"
+              width="180"
+            />
             <el-table-column
               key="invCode"
               label="发票代码"
               align="center"
               prop="invCode"
-              width="180"
-            />
-            <el-table-column
-              label="发票号码"
-              align="center"
-              prop="invNum"
               width="180"
             />
             <el-table-column
@@ -279,7 +283,7 @@
                   type="success"
                   link
                   size="small"
-                  @click="handleEdit(scope.row.id)"
+                  @click="handleOpenDialog(scope.row.id)"
                 >
                   <el-icon>
                     <Edit />
@@ -291,112 +295,128 @@
           </el-table>
 
           <pagination
-            v-if="total > 0"
-            v-model:total="total"
-            v-model:page="queryParams.pageNum"
-            v-model:limit="queryParams.pageSize"
+            v-if="pageState.total > 0"
+            v-model:total="pageState.total"
+            v-model:page="queryState.queryParams.pageNum"
+            v-model:limit="queryState.queryParams.pageSize"
             @pagination="handleQuery"
           />
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 用户表单弹窗 -->
+    <!-- 修改表单弹窗 -->
     <el-drawer
-      v-model="dialog.visible"
-      :title="dialog.title"
+      v-model="editState.visible"
+      :title="editState.title"
       append-to-body
       @close="handleCloseDialog"
     >
-      <!-- 用户新增/编辑表单 -->
+      <!-- 新增/编辑表单 -->
       <el-form
-        ref="userFormRef"
-        :model="formData"
-        :rules="rules"
+        ref="invFormRef"
+        :model="editState.formData"
+        :rules="editState.rules"
         label-width="80px"
       >
-        <el-form-item label="用户名" prop="username">
+        <el-form-item label="发票号码" prop="invNum">
           <el-input
-            v-model="formData.username"
-            :readonly="!!formData.id"
-            placeholder="请输入用户名"
+            v-model="editState.formData.invNum"
+            placeholder="请输入发票号码"
           />
         </el-form-item>
-
-        <el-form-item label="手机号" prop="phone">
+        <el-form-item label="发票代码" prop="invCode">
           <el-input
-            v-model="formData.phone"
-            placeholder="请输入手机号码"
-            maxlength="11"
+            v-model="editState.formData.invCode"
+            placeholder="请输入发票代码"
           />
         </el-form-item>
-
-        <el-form-item label="邮  &nbsp; 箱" prop="email">
-          <el-input
-            v-model="formData.email"
-            placeholder="请输入邮箱"
-            maxlength="50"
+        <el-form-item label="开票日期" prop="invDate">
+          <el-date-picker
+            v-model="editState.formData.invDate"
+            type="date"
+            placeholder="选择开票日期"
           />
         </el-form-item>
-
-        <el-form-item label="头  &nbsp; 像" prop="avatar">
-          <el-input
-            v-model="formData.avatar"
-            placeholder="请输入头像地址"
-            maxlength="200"
+        <el-form-item label="开票金额" prop="amount">
+          <el-input-number
+            v-model="editState.formData.amount"
+            :step="1"
+            :precision="2"
+            :min="0"
           />
         </el-form-item>
-
-        <el-form-item label="余  &nbsp; 额" prop="balance">
+        <el-form-item label="税额" prop="tax">
+          <el-input v-model="editState.formData.tax" placeholder="请输入税额" />
+        </el-form-item>
+        <el-form-item label="校验码" prop="checkCode">
           <el-input
-            v-model="formData.balance"
-            placeholder="请输入用户余额"
-            maxlength="20"
+            v-model="editState.formData.checkCode"
+            placeholder="请输入校验码（后6位）"
           />
         </el-form-item>
-
-        <el-form-item label="管理员" prop="admin">
-          <el-radio-group>
-            <el-radio :label="1">是</el-radio>
-            <el-radio :label="0">否</el-radio>
+        <el-form-item label="已校验" prop="checked">
+          <el-radio-group v-model="editState.formData.checked">
+            <el-radio :value="1">是</el-radio>
+            <el-radio :value="0">否</el-radio>
           </el-radio-group>
         </el-form-item>
-
-        <el-form-item label="状  &nbsp; 态" prop="deleted">
-          <el-radio-group v-model="formData.status">
-            <el-radio :label="0">正常</el-radio>
-            <el-radio :label="1">禁用</el-radio>
+        <el-form-item label="报销进度" prop="reimbursed">
+          <el-radio-group v-model="editState.formData.reimbursed">
+            <el-radio :value="0">未报</el-radio>
+            <el-radio :value="1">在途</el-radio>
+            <el-radio :value="2">已报</el-radio>
+            <el-radio :value="3">已拒</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="报销人" prop="owner">
+          <el-input
+            v-model="editState.formData.owner"
+            placeholder="请输入报销人"
+          />
+        </el-form-item>
+        <el-form-item label="发票文件" v-if="!editState.t">
+          <single-upload v-model="editState.formData.fileId" />
         </el-form-item>
       </el-form>
-
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary">确 定</el-button>
-          <el-button>取 消</el-button>
+          <el-button type="primary" @click="handleSubmit">确 定</el-button>
+          <el-button @click="handleCloseDialog">取 消</el-button>
         </div>
       </template>
     </el-drawer>
 
     <!-- 用户导入弹窗 -->
-    <user-import v-model:visible="importDialogVisible" />
-    <!-- 文件查验表单 -->
+    <ImportInvData v-model:visible="importState.importDialogVisible" />
+    <!-- 文件预览弹窗 -->
     <el-dialog
-      v-if="previewFile.showDialog"
-      v-model="previewFile.showDialog"
+      v-if="previewState.showDialog"
+      v-model="previewState.showDialog"
       title="文件预览"
       center
       :fullscreen="true"
+      @close="handleClosePreviewFile"
     >
       <PDF
-        :src="previewFile.url"
-        v-loading.fullscreen.lock="!previewFile.url"
+        :src="previewState.url"
+        :pdfWidth="'80%'"
+        v-loading.fullscreen.lock="previewState.fileType.length < 1"
+        v-if="previewState.isPdf"
+      />
+      <el-image
+        v-else
+        :src="previewState.url"
+        fit="contain"
+        style="width: 80%; margin-left: 10%"
       />
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import edit from "@/views/demo/curd/config/edit";
+
 defineOptions({
   name: "User",
   inheritAttrs: false,
@@ -405,6 +425,7 @@ defineOptions({
 import {
   Download,
   Edit,
+  Loading,
   Picture,
   Plus,
   Postcard,
@@ -416,96 +437,214 @@ import {
 } from "@element-plus/icons-vue";
 import PDF from "pdf-vue3";
 
-import InvAPI, { InvPageQuery, InvData } from "@/api/inv";
+import InvAPI, { InvPageQuery, InvData, InvQueryResult } from "@/api/inv";
 import FileAPI, { FilePreview } from "@/api/file";
+import SingleUpload from "@/components/Upload/SingleUpload.vue";
+import ImportInvData from "./components/ImportInvData.vue";
 
 const queryFormRef = ref(ElForm);
-const userFormRef = ref(ElForm);
+const invFormRef = ref(ElForm);
 
-const loading = ref(false);
-const removeIds = ref([]);
-const total = ref(0);
-const pageData = ref<InvData[]>();
-/** 用户查询参数  */
-const queryParams = reactive<InvPageQuery>(<InvPageQuery>{
-  pageNum: 1,
-  pageSize: 10,
+const queryState = reactive({
+  loading: false,
+  queryParams: <InvPageQuery>{
+    pageNum: 1,
+    pageSize: 10,
+  },
+  dateTimeRange: "",
 });
 
-const dateTimeRange = ref("");
-
-watch(dateTimeRange, (newVal) => {
-  if (newVal) {
-    queryParams.startTime = newVal[0];
-    queryParams.endTime = newVal[1];
-  } else {
-    queryParams.startTime = undefined;
-    queryParams.endTime = undefined;
-  }
-});
-
-/**  用户弹窗对象  */
-const dialog = reactive({
-  visible: false,
-  title: "",
+const pageState = reactive({
+  removeIds: [],
+  total: 0,
+  pageData: <InvData[]>[],
 });
 
 /** 导入弹窗显示状态 */
-const importDialogVisible = ref(false);
-
-// 用户表单数据
-const formData = reactive({
-  status: 0,
+const importState = reactive({
+  importDialogVisible: true,
 });
 
-const previewFile = reactive({
+const previewState = reactive({
   fileType: "",
   url: "",
+  isPdf: false,
   showDialog: false,
+});
+
+const editState = reactive({
+  visible: false,
+  title: "",
+  t: 0, // 0 新建 1 修改
+  rules: {
+    invNum: [
+      { required: true, message: "请输入发票号码", trigger: "blur" },
+      {
+        pattern: /^\d{8}$|^\d{20}$/,
+        message: "长度普通票8位，全电票20位",
+        trigger: "blur",
+      },
+    ],
+    invCode: [
+      {
+        pattern: /^\d{12}$/,
+        message: "发票代码为12位数字",
+        trigger: "blur",
+      },
+    ],
+    amount: [
+      { required: true, message: "请输入金额", trigger: "blur" },
+      {
+        pattern: /^\d+\.?\d*$/,
+        message: "金额格式不正确",
+        trigger: "blur",
+      },
+    ],
+    tax: [
+      {
+        required: true,
+        message: "请输入税额，若无则填写*或免税",
+        trigger: "blur",
+      },
+    ],
+    checkCode: [
+      {
+        pattern: /^\d{6}$|^\d{20}$/,
+        message: "填写校验码后六位数字或全部20位",
+        trigger: "blur",
+      },
+    ],
+  },
+  formData: <InvData>{
+    checked: 0,
+    reimbursed: 0,
+  },
 });
 
 /** 查询 */
 function handleQuery() {
-  loading.value = true;
-  InvAPI.getPage(queryParams)
-    .then((res: InvData) => {
-      pageData.value = res.records;
-      total.value = res.total;
+  queryState.loading = true;
+  InvAPI.getPage(queryState.queryParams)
+    .then((res: InvQueryResult) => {
+      pageState.pageData = res.records;
+      pageState.total = res.total;
     })
     .finally(() => {
-      loading.value = false;
+      queryState.loading = false;
     });
 }
 
 /** 重置查询 */
 function handleResetQuery() {
   queryFormRef.value.resetFields();
-  dateTimeRange.value = "";
-  queryParams.pageNum = 1;
-  queryParams.startTime = undefined;
-  queryParams.endTime = undefined;
-  queryParams.minAmount = undefined;
-  queryParams.maxAmount = undefined;
+  queryState.dateTimeRange = "";
+  queryState.queryParams.pageNum = 1;
+  queryState.queryParams.startTime = undefined;
+  queryState.queryParams.endTime = undefined;
+  queryState.queryParams.minAmount = undefined;
+  queryState.queryParams.maxAmount = undefined;
   handleQuery();
 }
 
-function handleOpenDialog() {}
+async function handleOpenDialog(id?: number) {
+  editState.visible = true;
+  if (id) {
+    editState.t = 1;
+    editState.title = "修改发票信息";
+    InvAPI.getInvData(id).then((res: InvData) => {
+      editState.formData = res;
+    });
+  } else {
+    editState.title = "新增发票数据";
+  }
+}
+function handleDelete() {
+  const invIds = pageState.removeIds.join(",");
+  if (!invIds) {
+    ElMessage.warning("请勾选删除项");
+    return;
+  }
 
-function handleDelete() {}
+  ElMessageBox.confirm("确认删除?", "警告", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(
+    function () {
+      queryState.loading = true;
+      InvAPI.deleteByIds(invIds)
+        .then(() => {
+          ElMessage.success("删除成功");
+          handleResetQuery();
+        })
+        .finally(() => (queryState.loading = false));
+    },
+    function () {
+      ElMessage.info("已取消");
+    }
+  );
+}
+/** 行复选框选中记录选中ID集合 */
+function handleSelectionChange(selection: any) {
+  pageState.removeIds = selection.map((item: any) => item.id);
+}
 
-function handleSelectionChange() {}
-
-function handleOpenImportDialog() {}
+function handleOpenImportDialog() {
+  importState.importDialogVisible = true;
+}
 
 function handleExport() {}
 
-function handleCloseDialog() {}
+function handleCloseDialog() {
+  editState.visible = false;
+  invFormRef.value.resetFields();
+  invFormRef.value.clearValidate();
 
-async function handleViewFile(id: number) {
-  previewFile.showDialog = true;
+  editState.formData.id = undefined;
+  editState.t = 0;
+}
+
+function handleClosePreviewFile() {
+  previewState.showDialog = false;
+  previewState.url = "";
+  previewState.fileType = "";
+  previewState.isPdf = false;
+}
+/**将文件链接转为byte数组*/
+async function fetchFileAsBase64(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = function () {
+      resolve(reader.result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function handleViewFile(id: number) {
+  previewState.showDialog = true;
   FileAPI.previewFile(id).then((res: FilePreview) => {
-    previewFile.fileType = res.fileType;
-    previewFile.url = "https://hymhub.github.io/pdf-vue3/";
+    if (res.fileType === "application/pdf") {
+      previewState.isPdf = true;
+      fetchFileAsBase64(res.url)
+        .then((base64: any) => {
+          previewState.url = base64;
+        })
+        .catch(() => {
+          ElMessage.error("文件预览失败");
+          previewState.showDialog = false;
+        });
+    } else {
+      previewState.url = res.url;
+      previewState.isPdf = false;
+    }
+    previewState.fileType = res.fileType;
   });
 }
 
@@ -513,7 +652,41 @@ function handleViewCheckResult(id: number) {}
 
 function handleCheckAgain(id: number) {}
 
-function handleEdit(id: number) {}
+const handleSubmit = useThrottleFn(() => {
+  invFormRef.value.validate((valid: any) => {
+    if (valid) {
+      const invId = editState.formData.id;
+      if (invId) {
+        InvAPI.update(editState.formData).then(() => {
+          ElMessage.success("修改发票信息成功");
+          handleCloseDialog();
+          handleResetQuery();
+        });
+      } else {
+        InvAPI.add(editState.formData).then(() => {
+          ElMessage.success("新增发票信息成功");
+          handleCloseDialog();
+          handleResetQuery();
+        });
+      }
+    }
+  });
+}, 3000);
+
+watch(
+  computed(() => {
+    return queryState.dateTimeRange;
+  }),
+  (newVal) => {
+    if (newVal) {
+      queryState.queryParams.startTime = newVal[0];
+      queryState.queryParams.endTime = newVal[1];
+    } else {
+      queryState.queryParams.startTime = undefined;
+      queryState.queryParams.endTime = undefined;
+    }
+  }
+);
 
 onMounted(() => {
   handleQuery();

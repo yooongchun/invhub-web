@@ -1,40 +1,64 @@
 <template>
   <!-- 上传组件 -->
   <el-upload
-    v-model="imgUrl"
+    v-model="fileId"
     class="single-uploader"
     :show-file-list="false"
     list-type="picture-card"
     :before-upload="handleBeforeUpload"
     :http-request="uploadFile"
   >
-    <img v-if="imgUrl" :src="imgUrl" class="single-uploader__image" />
-    <el-icon v-else class="single-uploader__icon"><i-ep-plus /></el-icon>
+    <img
+      v-if="fileId && !isPdf && preview.url"
+      :src="preview.url"
+      alt=""
+      class="single-uploader__image"
+    />
+    <img
+      v-else-if="fileId && isPdf && preview.url"
+      :src="PDFIcon"
+      alt=""
+      class="single-uploader__image"
+    />
+    <el-icon v-else class="single-uploader__icon"><Plus /></el-icon>
   </el-upload>
 </template>
 
 <script setup lang="ts">
 import { UploadRawFile, UploadRequestOptions } from "element-plus";
-import FileAPI from "@/api/file";
-
+import FileAPI, { FileInfo, FilePreview } from "@/api/file";
+import { Plus } from "@element-plus/icons-vue";
+import PDFIcon from "@/assets/icons/PDF.svg";
 const props = defineProps({
   modelValue: {
-    type: String,
-    default: "",
+    type: Number,
+    default: 0,
   },
 });
 
 const emit = defineEmits(["update:modelValue"]);
-const imgUrl = useVModel(props, "modelValue", emit);
+const fileId = useVModel(props, "modelValue", emit);
+const isPdf = ref(false);
+const preview = reactive<FilePreview>({});
 
 /**
  * 自定义图片上传
  *
  * @param options
  */
-async function uploadFile(options: UploadRequestOptions): Promise<any> {
-  const data = await FileAPI.upload(options.file);
-  imgUrl.value = data.url;
+function uploadFile(options: UploadRequestOptions): Promise<any> {
+  FileAPI.upload(options.file)
+    .then((fileInfo: FileInfo) => {
+      FileAPI.previewFile(fileInfo.id)
+        .then((filePreview: FilePreview) => {
+          fileId.value = fileInfo.id;
+          preview.fileType = filePreview.fileType;
+          preview.url = filePreview.url;
+          isPdf.value = filePreview.fileType === "application/pdf";
+        })
+        .catch();
+    })
+    .catch();
 }
 
 /**
@@ -42,7 +66,18 @@ async function uploadFile(options: UploadRequestOptions): Promise<any> {
  */
 function handleBeforeUpload(file: UploadRawFile) {
   if (file.size > 2 * 1048 * 1048) {
-    ElMessage.warning("上传图片不能大于2M");
+    ElMessage.warning("上传文件不能大于2M");
+    return false;
+  }
+  const validTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/bmp",
+    "image/webp",
+    "application/pdf",
+  ];
+  if (!validTypes.includes(file.type)) {
+    ElMessage.warning("仅支持上传jpg、png、bmp、webp、pdf格式的文件");
     return false;
   }
   return true;
