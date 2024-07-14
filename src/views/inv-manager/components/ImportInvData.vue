@@ -32,6 +32,7 @@
       :on-preview="handlePictureCardPreview"
       :on-remove="handleRemove"
       :on-success="handleSuccess"
+      :before-upload="beforeUpload"
       :headers="{ Authorization: token }"
       v-if="stepId === 1"
     >
@@ -56,13 +57,12 @@
       /></el-col>
     </el-row>
     <el-table
-      v-if="stepId === 2"
-      :data="uploadState.importFormData.files"
+      v-if="stepId === 2 && invTaskState.failed.length > 0"
+      :data="invTaskState.failed"
       style="width: 100%"
     >
       <el-table-column prop="name" label="文件名" />
-      <el-table-column prop="url" label="文件链接" />
-      <el-table-column prop="status" label="任务状态" />
+      <el-table-column prop="reason" label="失败原因" />
     </el-table>
     <template #footer>
       <div
@@ -73,9 +73,7 @@
       >
         <el-button
           type="primary"
-          :disabled="
-            uploadState.importFormData.files.length === 0 && stepId === 1
-          "
+          :disabled="!enableSubmit"
           @click="handleSubmit"
         >
           确 定
@@ -91,6 +89,7 @@ import { UploadFile, type UploadUserFile } from "element-plus";
 import InvAPI from "@/api/inv";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { TOKEN_KEY } from "@/enums/CacheEnum";
+import { getFileExtension } from "@/utils/util";
 
 const props = defineProps({
   visible: {
@@ -105,8 +104,12 @@ const dialogVisible = computed({
     emit("update:visible", val);
   },
 });
+const enableSubmit = ref(false);
+
 const stepId = ref(1);
 const uploadState = reactive({
+  selectNum: 0,
+  uploadNum: 0,
   previewImageUrl: "",
   previewVisible: false,
   importFormData: <
@@ -123,10 +126,23 @@ const uploadState = reactive({
   },
 });
 
+watch(uploadState, () => {
+  if (stepId.value === 1) {
+    enableSubmit.value =
+      fileUploadResMap.size > 0 &&
+      uploadState.selectNum === uploadState.uploadNum;
+  }
+});
+interface FailedMap {
+  name: string;
+  reason: string;
+}
+
 const invTaskState = reactive({
   progress: 0,
-  failed: 0,
-  total: 0,
+  total: 1,
+  failed: <[{ name: string; reason: string }]>[],
+  pct: 0,
 });
 
 const token = localStorage.getItem(TOKEN_KEY);
@@ -147,21 +163,55 @@ const handleClose = () => {
 };
 
 function handleSuccess(response: any, file: UploadFile) {
+  if (response.code !== 0 || response.status !== 200) {
+    ElMessage.error(response.message);
+    uploadState.selectNum -= 1;
+    return;
+  }
   fileUploadResMap.set(file.uid, response.data.id);
+  uploadState.uploadNum += 1;
+}
+
+const supportedFileTypes = ["jpeg", "png", "bmp", "webp", "pdf", "jpg"];
+
+function beforeUpload(file: UploadFile) {
+  const isLt2M = file.size! / 1024 / 1024 < 2;
+  if (!isLt2M) {
+    ElMessage.error(`${file.name}: 文件大小超过 2MB!`);
+    return false;
+  }
+  if (!supportedFileTypes.includes(getFileExtension(file.name!))) {
+    ElMessage.error(`${file.name}: 文件类型不支持!`);
+    return false;
+  }
+  uploadState.selectNum += 1;
 }
 
 async function startFileParse() {
-  for (let [_, fileId] of fileUploadResMap) {
+  invTaskState.total = fileUploadResMap.size;
+  for (let [uid, fileId] of fileUploadResMap) {
     InvAPI.parseData(fileId)
       .then(() => {
         invTaskState.progress += 1;
       })
       .catch(() => {
-        invTaskState.failed += 1;
+        const fileName = getFileNameByUid(uid);
+        if (!fileName) {
+          ElMessage.error("文件名获取失败");
+        } else {
+          invTaskState.failed.push({ name: fileName, reason: "解析失败！" });
+        }
       });
     await sleep(1000);
   }
 }
+function getFileNameByUid(uid: number) {
+  const file = uploadState.importFormData.files.find(
+    (file) => file.uid === uid
+  );
+  return file ? file.name : "";
+}
+
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
