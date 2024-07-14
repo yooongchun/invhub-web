@@ -462,7 +462,13 @@ const pageState = reactive({
 
 /** 导入弹窗显示状态 */
 const importState = reactive({
-  importDialogVisible: true,
+  importDialogVisible: false,
+});
+
+watch(importState, (newVal) => {
+  if (!newVal.importDialogVisible) {
+    handleQuery();
+  }
 });
 
 const previewState = reactive({
@@ -600,7 +606,7 @@ function handleCloseDialog() {
   invFormRef.value.resetFields();
   invFormRef.value.clearValidate();
 
-  editState.formData.id = undefined;
+  editState.formData.id = 0;
   editState.t = 0;
 }
 

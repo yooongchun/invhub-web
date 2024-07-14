@@ -47,19 +47,34 @@
     <el-dialog v-model="uploadState.previewVisible">
       <img w-full :src="uploadState.previewImageUrl" alt="Preview Image" />
     </el-dialog>
-    <el-row style="margin-top: 40px"
-      ><el-col :span="10" />
-      <el-col :span="12">
+    <el-row style="margin-top: 40px" v-if="stepId === 2">
+      <el-col :span="3" />
+      <el-col :span="7">
         <el-progress
-          v-if="stepId === 2"
           type="circle"
           :percentage="invTaskState.progress"
+          status="success"
+        >
+          <template #default="{ percentage }">
+            <div class="percentage-value">{{ percentage }}ge</div>
+            <div class="percentage-label">success num</div>
+          </template>
+        </el-progress></el-col
+      >
+      <el-col :span="7">
+        <el-progress type="circle" :percentage="invTaskState.pct"
+      /></el-col>
+      <el-col :span="7">
+        <el-progress
+          type="circle"
+          :percentage="invTaskState.failed.length"
+          status="exception"
       /></el-col>
     </el-row>
     <el-table
       v-if="stepId === 2 && invTaskState.failed.length > 0"
       :data="invTaskState.failed"
-      style="width: 100%"
+      style="width: 100%; margin-top: 40px"
     >
       <el-table-column prop="name" label="文件名" />
       <el-table-column prop="reason" label="失败原因" />
@@ -141,10 +156,9 @@ interface FailedMap {
 const invTaskState = reactive({
   progress: 0,
   total: 1,
-  failed: <[{ name: string; reason: string }]>[],
+  failed: <FailedMap[]>[],
   pct: 0,
 });
-
 const token = localStorage.getItem(TOKEN_KEY);
 const handleRemove = (file: UploadFile) => {
   fileUploadResMap.delete(file.uid);
@@ -160,6 +174,14 @@ const fileUploadResMap: Map<number, number> = new Map();
 const handleClose = () => {
   dialogVisible.value = false;
   uploadState.importFormData.files = [];
+  fileUploadResMap.clear();
+  stepId.value = 1;
+  invTaskState.progress = 0;
+  invTaskState.failed = [];
+  invTaskState.total = 1;
+  invTaskState.pct = 0;
+  uploadState.selectNum = 0;
+  uploadState.uploadNum = 0;
 };
 
 function handleSuccess(response: any, file: UploadFile) {
@@ -193,6 +215,9 @@ async function startFileParse() {
     InvAPI.parseData(fileId)
       .then(() => {
         invTaskState.progress += 1;
+        invTaskState.pct = Math.floor(
+          (invTaskState.progress * 100.0) / invTaskState.total
+        );
       })
       .catch(() => {
         const fileName = getFileNameByUid(uid);
@@ -220,8 +245,12 @@ const handleSubmit = () => {
     ElMessage.warning("请选择文件");
     return;
   }
+  if (stepId.value === 1) {
+    invTaskState.total = fileUploadResMap.size;
+    startFileParse();
+  } else if (stepId.value >= 2) {
+    handleClose();
+  }
   stepId.value += 1;
-  invTaskState.total = fileUploadResMap.size;
-  startFileParse();
 };
 </script>
