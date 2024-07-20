@@ -22,7 +22,6 @@ export const constantRoutes: RouteRecordRaw[] = [
     component: () => import("@/views/login/index.vue"),
     meta: { hidden: true },
   },
-
   {
     path: "/",
     name: "/",
@@ -51,6 +50,29 @@ export const constantRoutes: RouteRecordRaw[] = [
         path: "404",
         component: () => import("@/views/error-page/404.vue"),
         meta: { hidden: true },
+      },
+    ],
+  },
+  {
+    path: "/",
+    component: Layout,
+    meta: {
+      title: "个人中心",
+      icon: "el-icon-user",
+      hidden: true,
+    },
+    children: [
+      {
+        path: "/personal-center",
+        component: () => import("@/views/personal-center/index.vue"),
+        name: "PersonalCenter",
+        meta: {
+          title: "个人中心",
+          icon: "el-icon-user",
+          affix: true,
+          keepAlive: true,
+          hidden: true,
+        },
       },
     ],
   },

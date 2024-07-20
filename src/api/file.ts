@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import { UploadUserFile } from "element-plus";
 
 const FILE_BASE_URL = "/api/v2/file";
 class FileAPI {
@@ -50,6 +51,8 @@ export interface FileInfo {
   fileName: string;
   /** 文件类型 */
   fileType: string;
+  /** Upload组件维护的文件对象 */
+  file?: UploadUserFile;
 }
 
 export interface FilePreview {

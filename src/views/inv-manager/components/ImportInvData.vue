@@ -28,7 +28,7 @@
       drag
       multiple
       accept="image/*,application/pdf"
-      v-model:file-list="uploadState.importFormData.files"
+      v-model:file-list="uploadState.files"
       :on-preview="handlePictureCardPreview"
       :on-remove="handleRemove"
       :on-success="handleSuccess"
@@ -47,38 +47,11 @@
     <el-dialog v-model="uploadState.previewVisible">
       <img w-full :src="uploadState.previewImageUrl" alt="Preview Image" />
     </el-dialog>
-    <el-row style="margin-top: 40px" v-if="stepId === 2">
-      <el-col :span="3" />
-      <el-col :span="7">
-        <el-progress
-          type="circle"
-          :percentage="invTaskState.progress"
-          status="success"
-        >
-          <template #default="{ percentage }">
-            <div class="percentage-value">{{ percentage }}ge</div>
-            <div class="percentage-label">success num</div>
-          </template>
-        </el-progress></el-col
-      >
-      <el-col :span="7">
-        <el-progress type="circle" :percentage="invTaskState.pct"
-      /></el-col>
-      <el-col :span="7">
-        <el-progress
-          type="circle"
-          :percentage="invTaskState.failed.length"
-          status="exception"
-      /></el-col>
-    </el-row>
-    <el-table
-      v-if="stepId === 2 && invTaskState.failed.length > 0"
-      :data="invTaskState.failed"
-      style="width: 100%; margin-top: 40px"
-    >
-      <el-table-column prop="name" label="文件名" />
-      <el-table-column prop="reason" label="失败原因" />
-    </el-table>
+    <ProcessInvData
+      :fileList="uploadState.succeed"
+      @sent="handleReady"
+      v-if="stepId === 2"
+    />
     <template #footer>
       <div
         style="
@@ -88,12 +61,12 @@
       >
         <el-button
           type="primary"
-          :disabled="!enableSubmit"
+          :disabled="!enableSubmitBtn"
           @click="handleSubmit"
         >
           确 定
         </el-button>
-        <el-button @click="handleClose">取 消</el-button>
+        <el-button v-if="stepId === 1" @click="handleClose">取 消</el-button>
       </div>
     </template>
   </el-dialog>
@@ -101,10 +74,11 @@
 
 <script lang="ts" setup>
 import { UploadFile, type UploadUserFile } from "element-plus";
-import InvAPI from "@/api/inv";
 import { UploadFilled } from "@element-plus/icons-vue";
 import { TOKEN_KEY } from "@/enums/CacheEnum";
 import { getFileExtension } from "@/utils/util";
+import { FileInfo } from "@/api/file";
+import ProcessInvData from "@/views/inv-manager/components/ProcessInvData.vue";
 
 const props = defineProps({
   visible: {
@@ -119,49 +93,27 @@ const dialogVisible = computed({
     emit("update:visible", val);
   },
 });
-const enableSubmit = ref(false);
-
 const stepId = ref(1);
 const uploadState = reactive({
-  selectNum: 0,
-  uploadNum: 0,
   previewImageUrl: "",
   previewVisible: false,
-  importFormData: <
-    {
-      files: UploadUserFile[];
-    }
-  >{
-    files: [
-      {
-        name: "food.jpeg",
-        url: "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100",
-      },
-    ],
-  },
+  files: <UploadUserFile[]>[],
+  succeed: <FileInfo[]>[],
 });
 
-watch(uploadState, () => {
+const childReady = ref(false);
+const enableSubmitBtn = computed(() => {
   if (stepId.value === 1) {
-    enableSubmit.value =
-      fileUploadResMap.size > 0 &&
-      uploadState.selectNum === uploadState.uploadNum;
+    return (
+      uploadState.files.length &&
+      uploadState.files.length === uploadState.succeed.length
+    );
   }
-});
-interface FailedMap {
-  name: string;
-  reason: string;
-}
-
-const invTaskState = reactive({
-  progress: 0,
-  total: 1,
-  failed: <FailedMap[]>[],
-  pct: 0,
+  return childReady.value;
 });
 const token = localStorage.getItem(TOKEN_KEY);
 const handleRemove = (file: UploadFile) => {
-  fileUploadResMap.delete(file.uid);
+  uploadState.files = uploadState.files.filter((item) => item.uid !== file.uid);
 };
 
 const handlePictureCardPreview = (file: UploadFile) => {
@@ -169,33 +121,27 @@ const handlePictureCardPreview = (file: UploadFile) => {
   uploadState.previewVisible = true;
 };
 
-const fileUploadResMap: Map<number, number> = new Map();
-
-const handleClose = () => {
+function handleReady() {
+  // 子组件处理完成，可以关闭
+  childReady.value = true;
+}
+function handleClose() {
   dialogVisible.value = false;
-  uploadState.importFormData.files = [];
-  fileUploadResMap.clear();
+  uploadState.files = [];
+  uploadState.succeed = [];
   stepId.value = 1;
-  invTaskState.progress = 0;
-  invTaskState.failed = [];
-  invTaskState.total = 1;
-  invTaskState.pct = 0;
-  uploadState.selectNum = 0;
-  uploadState.uploadNum = 0;
-};
-
-function handleSuccess(response: any, file: UploadFile) {
+}
+function handleSuccess(response: FileInfo, file: UploadFile) {
   if (response.code !== 0 || response.status !== 200) {
     ElMessage.error(response.message);
-    uploadState.selectNum -= 1;
+    handleRemove(file);
     return;
   }
-  fileUploadResMap.set(file.uid, response.data.id);
-  uploadState.uploadNum += 1;
+  response.data.file = file;
+  uploadState.succeed.push(response.data);
 }
 
 const supportedFileTypes = ["jpeg", "png", "bmp", "webp", "pdf", "jpg"];
-
 function beforeUpload(file: UploadFile) {
   const isLt2M = file.size! / 1024 / 1024 < 2;
   if (!isLt2M) {
@@ -206,51 +152,15 @@ function beforeUpload(file: UploadFile) {
     ElMessage.error(`${file.name}: 文件类型不支持!`);
     return false;
   }
-  uploadState.selectNum += 1;
 }
-
-async function startFileParse() {
-  invTaskState.total = fileUploadResMap.size;
-  for (let [uid, fileId] of fileUploadResMap) {
-    InvAPI.parseData(fileId)
-      .then(() => {
-        invTaskState.progress += 1;
-        invTaskState.pct = Math.floor(
-          (invTaskState.progress * 100.0) / invTaskState.total
-        );
-      })
-      .catch(() => {
-        const fileName = getFileNameByUid(uid);
-        if (!fileName) {
-          ElMessage.error("文件名获取失败");
-        } else {
-          invTaskState.failed.push({ name: fileName, reason: "解析失败！" });
-        }
-      });
-    await sleep(1000);
-  }
-}
-function getFileNameByUid(uid: number) {
-  const file = uploadState.importFormData.files.find(
-    (file) => file.uid === uid
-  );
-  return file ? file.name : "";
-}
-
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-const handleSubmit = () => {
-  if (!uploadState.importFormData.files.length) {
+function handleSubmit() {
+  if (!uploadState.files.length) {
     ElMessage.warning("请选择文件");
     return;
   }
-  if (stepId.value === 1) {
-    invTaskState.total = fileUploadResMap.size;
-    startFileParse();
-  } else if (stepId.value >= 2) {
+  stepId.value += 1;
+  if (stepId.value > 2) {
     handleClose();
   }
-  stepId.value += 1;
-};
+}
 </script>

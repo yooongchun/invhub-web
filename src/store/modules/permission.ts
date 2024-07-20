@@ -99,7 +99,7 @@ export const usePermissionStore = defineStore("permission", () => {
             name: "发票信息",
             meta: {
               title: "发票信息",
-              icon: "tickets",
+              icon: "el-icon-tickets",
               hidden: false,
               keepAlive: true,
               alwaysShow: false,
@@ -159,6 +159,19 @@ export const usePermissionStore = defineStore("permission", () => {
               meta: {
                 title: "用户管理",
                 icon: "el-icon-User",
+                hidden: false,
+                keepAlive: true,
+                alwaysShow: false,
+                params: null,
+              },
+            },
+            {
+              path: "message",
+              component: modules["../../views/system/message/index.vue"],
+              name: "Message",
+              meta: {
+                title: "消息管理",
+                icon: "el-icon-chat-dot-round",
                 hidden: false,
                 keepAlive: true,
                 alwaysShow: false,

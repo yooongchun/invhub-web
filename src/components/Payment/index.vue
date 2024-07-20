@@ -78,7 +78,7 @@ defineOptions({
   inheritAttrs: false,
 });
 import { onMounted } from "vue";
-import AlipayAPI, { OrderInfo } from "@/api/payment";
+import AlipayAPI, { OrderInfo } from "@/api/order";
 import vueQr from "vue-qr/src/packages/vue-qr.vue";
 import { useSettingsStore } from "@/store";
 import Scan from "@/assets/icons/scan.svg";

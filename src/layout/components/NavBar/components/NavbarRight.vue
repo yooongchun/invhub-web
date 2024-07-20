@@ -55,14 +55,12 @@
       </div>
       <template #dropdown>
         <el-dropdown-menu>
-          <a target="_blank" href="https://gitee.com/yczha/apihub-web">
-            <el-dropdown-item>
-              <el-icon>
-                <UserFilled />
-              </el-icon>
-              <el-text type="primary">个人中心</el-text>
-            </el-dropdown-item>
-          </a>
+          <el-dropdown-item @click="router.push('/personal-center')">
+            <el-icon>
+              <UserFilled />
+            </el-icon>
+            <el-text type="primary">个人中心</el-text>
+          </el-dropdown-item>
           <el-dropdown-item divided @click="showDialog = true">
             <el-icon>
               <CreditCard />
