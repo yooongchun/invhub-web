@@ -2,16 +2,9 @@
 import { FileInfo } from "@/api/file";
 import InvAPI from "@/api/inv";
 
-const props = defineProps({
-  fileList: {
-    type: Array,
-    default: () => [],
-  },
-  start: {
-    type: Boolean,
-    default: false,
-  },
-});
+const props = defineProps<{
+  fileList: FileInfo[];
+}>();
 interface Result {
   filename: string;
   reason: string;
@@ -32,12 +25,20 @@ async function startFileParse() {
           reason: "成功",
         });
       })
-      .catch(() => {
-        invTaskState.failed.push(fileInfo);
-        invTaskState.reason.push({
-          filename: fileInfo.fileName,
-          reason: "失败",
-        });
+      .catch((res) => {
+        if (res.message === "发票信息已存在") {
+          invTaskState.succeed.push(fileInfo);
+          invTaskState.reason.push({
+            filename: fileInfo.fileName,
+            reason: "发票已存在",
+          });
+        } else {
+          invTaskState.failed.push(fileInfo);
+          invTaskState.reason.push({
+            filename: fileInfo.fileName,
+            reason: "解析失败",
+          });
+        }
       });
     await sleep(100);
   }
@@ -50,8 +51,10 @@ async function sleep(ms: number) {
 
 const pct = computed(() => {
   return Number.parseInt(
-    ((invTaskState.succeed.length + invTaskState.failed.length) * 100.0) /
-      props.fileList.length || 0
+    String(
+      ((invTaskState.succeed.length + invTaskState.failed.length) * 100.0) /
+        props.fileList.length || 0
+    )
   );
 });
 
@@ -101,7 +104,14 @@ onMounted(() => {
     <el-table-column prop="filename" label="文件名" />
     <el-table-column prop="reason" label="结果">
       <template #default="scope">
-        <el-tag :type="scope.row.reason === '成功' ? 'success' : 'danger'"
+        <el-tag
+          :type="
+            scope.row.reason === '成功'
+              ? 'success'
+              : scope.row.reason === '解析失败'
+                ? 'danger'
+                : 'warning'
+          "
           >{{ scope.row.reason }}
         </el-tag>
       </template>

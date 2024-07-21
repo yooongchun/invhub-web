@@ -114,7 +114,7 @@
                   <el-icon>
                     <Plus />
                   </el-icon>
-                  新增
+                  手动录入
                 </el-button>
                 <el-button
                   type="danger"
@@ -136,7 +136,7 @@
                   <template #icon>
                     <Download />
                   </template>
-                  导入
+                  自动解析
                 </el-button>
                 <el-button class="ml-3" @click="handleExport">
                   <template #icon>
@@ -250,7 +250,7 @@
                   type="primary"
                   size="small"
                   link
-                  @click="handleViewFile(scope.row.id)"
+                  @click="handleViewFile(scope.row.fileId)"
                 >
                   <el-icon>
                     <Picture />

@@ -20,6 +20,18 @@
       />
       <el-step title="完成" :status="stepId === 3 ? 'success' : 'wait'" />
     </el-steps>
+    <el-alert
+      title="每份￥0.05元，已存在或失败不计费！！"
+      type="warning"
+      effect="dark"
+      v-if="stepId === 1"
+    />
+    <el-alert
+      title="识别不能保证100%准确，关键数据请务必仔细校验！！"
+      type="error"
+      effect="dark"
+      v-if="stepId === 1"
+    />
     <el-upload
       action="/dev-api/api/v2/file/upload"
       list-type="picture"
@@ -131,9 +143,13 @@ function handleClose() {
   uploadState.succeed = [];
   stepId.value = 1;
 }
-function handleSuccess(response: FileInfo, file: UploadFile) {
+function handleSuccess(response: any, file: UploadFile) {
   if (response.code !== 0 || response.status !== 200) {
-    ElMessage.error(response.message);
+    if (response.code === 2006) {
+      ElMessage.warning("文件已存在，无需重复上传！");
+    } else {
+      ElMessage.error(response.message);
+    }
     handleRemove(file);
     return;
   }
