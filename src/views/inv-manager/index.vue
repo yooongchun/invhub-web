@@ -27,6 +27,7 @@
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
+                @change="handleQuery"
               >
                 <el-option label="未查验" value="10" />
                 <el-option label="查验中" value="20" />
@@ -43,6 +44,7 @@
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
+                @change="handleQuery"
               >
                 <el-option label="未校验" value="0" />
                 <el-option label="已校验" value="1" />
@@ -54,10 +56,11 @@
                 placeholder="全部"
                 clearable
                 class="!w-[100px]"
+                @change="handleQuery"
               >
                 <el-option label="未报" value="0" />
-                <el-option label="在途" value="2" />
-                <el-option label="已报" value="1" />
+                <el-option label="在途" value="1" />
+                <el-option label="已报" value="2" />
                 <el-option label="已拒" value="3" />
               </el-select>
             </el-form-item>
