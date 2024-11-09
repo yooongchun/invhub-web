@@ -106,6 +106,6 @@ export interface InvData {
   /** 报销人 */
   owner: string;
   /** 查验结果 */
-  invChecked: string;
+  invChecked: number;
   fileId?: number;
 }

@@ -20,18 +20,6 @@
       />
       <el-step title="完成" :status="stepId === 3 ? 'success' : 'wait'" />
     </el-steps>
-    <el-alert
-      title="每份￥0.05元，已存在或失败不计费！！"
-      type="warning"
-      effect="dark"
-      v-if="stepId === 1"
-    />
-    <el-alert
-      title="识别不能保证100%准确，关键数据请务必仔细校验！！"
-      type="error"
-      effect="dark"
-      v-if="stepId === 1"
-    />
     <el-upload
       action="/dev-api/api/v2/file/upload"
       list-type="picture"
@@ -137,12 +125,14 @@ function handleReady() {
   // 子组件处理完成，可以关闭
   childReady.value = true;
 }
+
 function handleClose() {
   dialogVisible.value = false;
   uploadState.files = [];
   uploadState.succeed = [];
   stepId.value = 1;
 }
+
 function handleSuccess(response: any, file: UploadFile) {
   if (response.code !== 0 || response.status !== 200) {
     if (response.code === 2006) {
@@ -158,6 +148,7 @@ function handleSuccess(response: any, file: UploadFile) {
 }
 
 const supportedFileTypes = ["jpeg", "png", "bmp", "webp", "pdf", "jpg"];
+
 function beforeUpload(file: UploadFile) {
   const isLt2M = file.size! / 1024 / 1024 < 2;
   if (!isLt2M) {
@@ -169,6 +160,7 @@ function beforeUpload(file: UploadFile) {
     return false;
   }
 }
+
 function handleSubmit() {
   if (!uploadState.files.length) {
     ElMessage.warning("请选择文件");

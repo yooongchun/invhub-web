@@ -29,6 +29,7 @@
                 class="!w-[100px]"
                 @change="handleQuery"
               >
+                <el-option label="等待中" value="0" />
                 <el-option label="未查验" value="10" />
                 <el-option label="查验中" value="20" />
                 <el-option label="已查验" value="30" />
@@ -113,7 +114,24 @@
           <template #header>
             <div class="flex-x-between">
               <div>
-                <el-button type="success" @click="handleOpenDialog()">
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="每份￥0.05！自动解析非100%准确，请务必仔细核验！"
+                  placement="top-start"
+                >
+                  <el-button
+                    class="ml-3"
+                    type="success"
+                    @click="handleOpenImportDialog"
+                  >
+                    <template #icon>
+                      <Download />
+                    </template>
+                    自动解析
+                  </el-button>
+                </el-tooltip>
+                <el-button type="info" @click="handleOpenDialog()">
                   <el-icon>
                     <Plus />
                   </el-icon>
@@ -131,16 +149,12 @@
                 </el-button>
               </div>
               <div>
-                <el-button
-                  class="ml-3"
-                  type="success"
-                  @click="handleOpenImportDialog"
-                >
-                  <template #icon>
-                    <Download />
-                  </template>
-                  自动解析
-                </el-button>
+                <el-checkbox
+                  v-model="autoCheckEnable"
+                  label="开启自动查验"
+                  border
+                  @change="handleAutoCheckChanged"
+                />
                 <el-button class="ml-3" @click="handleExport">
                   <template #icon>
                     <Upload />
@@ -220,6 +234,9 @@
             </el-table-column>
             <el-table-column label="查验结果" align="center" prop="invChecked">
               <template #default="scope">
+                <el-tag type="info" v-if="scope.row.invChecked == 0">
+                  等待中
+                </el-tag>
                 <el-tag type="info" v-if="scope.row.invChecked == 10">
                   未查验
                 </el-tag>
@@ -270,17 +287,6 @@
                     <Postcard />
                   </el-icon>
                   查验
-                </el-button>
-                <el-button
-                  type="primary"
-                  link
-                  size="small"
-                  @click="handleCheckAgain(scope.row.id)"
-                >
-                  <el-icon>
-                    <VideoPlay />
-                  </el-icon>
-                  重查
                 </el-button>
                 <el-button
                   type="success"
@@ -439,14 +445,18 @@ import {
   VideoPlay,
 } from "@element-plus/icons-vue";
 import PDF from "pdf-vue3";
-
 import InvAPI, { InvPageQuery, InvData, InvQueryResult } from "@/api/inv";
 import FileAPI, { FilePreview } from "@/api/file";
 import SingleUpload from "@/components/Upload/SingleUpload.vue";
 import ImportInvData from "./components/ImportInvData.vue";
+import UserAPI from "@/api/user";
 
 const queryFormRef = ref(ElForm);
 const invFormRef = ref(ElForm);
+// 打开自动查验开关
+const autoCheckEnable = ref(false);
+// 存在查验中的任务，定时刷新
+const inChecking = ref(false);
 
 const queryState = reactive({
   loading: false,
@@ -530,6 +540,11 @@ const editState = reactive({
   },
 });
 
+function handleAutoCheckChanged() {
+  // 处理自动查验开启事件
+  UserAPI.setAutoCheck(autoCheckEnable.value);
+}
+
 /** 查询 */
 function handleQuery() {
   queryState.loading = true;
@@ -537,9 +552,22 @@ function handleQuery() {
     .then((res: InvQueryResult) => {
       pageState.pageData = res.records;
       pageState.total = res.total;
+      for (let record of res.records) {
+        inChecking.value =
+          inChecking.value ||
+          record.invChecked === 20 ||
+          record.invChecked === 0;
+      }
     })
     .finally(() => {
       queryState.loading = false;
+      // 如果存在查验中的任务，10秒之后刷新
+      if (inChecking.value) {
+        setTimeout(() => {
+          console.log("刷新查验进度...", inChecking.value);
+          handleQuery();
+        }, 10000);
+      }
     });
 }
 
@@ -567,6 +595,7 @@ async function handleOpenDialog(id?: number) {
     editState.title = "新增发票数据";
   }
 }
+
 function handleDelete() {
   const invIds = pageState.removeIds.join(",");
   if (!invIds) {
@@ -593,6 +622,7 @@ function handleDelete() {
     }
   );
 }
+
 /** 行复选框选中记录选中ID集合 */
 function handleSelectionChange(selection: any) {
   pageState.removeIds = selection.map((item: any) => item.id);
@@ -619,6 +649,7 @@ function handleClosePreviewFile() {
   previewState.fileType = "";
   previewState.isPdf = false;
 }
+
 /**将文件链接转为byte数组*/
 async function fetchFileAsBase64(url: string) {
   const response = await fetch(url);
@@ -658,8 +689,6 @@ function handleViewFile(id: number) {
 }
 
 function handleViewCheckResult(id: number) {}
-
-function handleCheckAgain(id: number) {}
 
 const handleSubmit = useThrottleFn(() => {
   invFormRef.value.validate((valid: any) => {

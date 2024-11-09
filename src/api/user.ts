@@ -22,6 +22,14 @@ class UserAPI {
     });
   }
 
+  static setAutoCheck(enabled: boolean) {
+    return request({
+      url: `${USER_BASE_URL}/setting`,
+      method: "post",
+      params: { key: "AUTO_RUN_INV_CHECK", value: enabled ? "1" : "0" },
+    });
+  }
+
   /**
    * 获取用户分页列表
    *
