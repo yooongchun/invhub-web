@@ -29,13 +29,12 @@
                 class="!w-[100px]"
                 @change="handleQuery"
               >
-                <el-option label="等待中" value="0" />
-                <el-option label="未查验" value="10" />
-                <el-option label="查验中" value="20" />
-                <el-option label="已查验" value="30" />
-                <el-option label="查无此票" value="31" />
-                <el-option label="不一致" value="32" />
-                <el-option label="查验失败" value="40" />
+                <el-option
+                  v-for="item of invCheckStatus"
+                  :key="item.code"
+                  :label="item.msg"
+                  :value="item.code"
+                />
               </el-select>
             </el-form-item>
 
@@ -117,7 +116,7 @@
                 <el-tooltip
                   class="box-item"
                   effect="dark"
-                  content="每份￥0.05！自动解析非100%准确，请务必仔细核验！"
+                  content="自动解析发票关键数据，非100%准确，请务必仔细核验！可通过查验保证数据准确性！每份￥0.01！"
                   placement="top-start"
                 >
                   <el-button
@@ -131,12 +130,19 @@
                     自动解析
                   </el-button>
                 </el-tooltip>
-                <el-button type="info" @click="handleOpenDialog()">
-                  <el-icon>
-                    <Plus />
-                  </el-icon>
-                  手动录入
-                </el-button>
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="手动录入发票数据，后续可进行查验！"
+                  placement="top-start"
+                >
+                  <el-button type="info" @click="handleOpenDialog()">
+                    <el-icon>
+                      <Plus />
+                    </el-icon>
+                    手动录入
+                  </el-button>
+                </el-tooltip>
                 <el-button
                   type="danger"
                   :disabled="pageState.removeIds.length === 0"
@@ -149,12 +155,19 @@
                 </el-button>
               </div>
               <div>
-                <el-checkbox
-                  v-model="autoCheckEnable"
-                  label="开启自动查验"
-                  border
-                  @change="handleAutoCheckChanged"
-                />
+                <el-tooltip
+                  class="box-item"
+                  effect="dark"
+                  content="是否在每次上传发票数据之后自动触发查验？查验可以从国税官网查验发票的真伪！同时查验成功之后可以保证数据的准确性，建议查验！每份￥0.05！"
+                  placement="top-start"
+                >
+                  <el-checkbox
+                    v-model="autoCheckEnable"
+                    label="开启自动查验"
+                    border
+                    @change="handleAutoCheckChanged"
+                  />
+                </el-tooltip>
                 <el-button class="ml-3" @click="handleExport">
                   <template #icon>
                     <Upload />
@@ -234,32 +247,14 @@
             </el-table-column>
             <el-table-column label="查验结果" align="center" prop="invChecked">
               <template #default="scope">
-                <el-tag type="info" v-if="scope.row.invChecked == 0">
-                  等待中
-                </el-tag>
-                <el-tag type="info" v-if="scope.row.invChecked == 10">
-                  未查验
-                </el-tag>
-                <el-tag type="warning" v-else-if="scope.row.invChecked == 20">
-                  <el-icon class="is-loading">
+                <el-tag :type="getInvCheckStatus(scope.row.invChecked).tip">
+                  {{ getInvCheckStatus(scope.row.invChecked).msg }}
+                  <el-icon
+                    class="is-loading"
+                    v-if="getInvCheckStatus(scope.row.invChecked).loading"
+                  >
                     <Loading />
                   </el-icon>
-                  查验中
-                </el-tag>
-                <el-tag type="success" v-else-if="scope.row.invChecked == 30">
-                  已查验
-                </el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 31">
-                  查无此票
-                </el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 32">
-                  不一致
-                </el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 33">
-                  已作废
-                </el-tag>
-                <el-tag type="danger" v-else-if="scope.row.invChecked == 40">
-                  查验失败
                 </el-tag>
               </template>
             </el-table-column>
@@ -271,6 +266,7 @@
                   size="small"
                   link
                   @click="handleViewFile(scope.row.fileId)"
+                  :disabled="scope.row.fileId == 0"
                 >
                   <el-icon>
                     <Picture />
@@ -282,6 +278,13 @@
                   link
                   size="small"
                   @click="handleViewCheckResult(scope.row.id)"
+                  :disabled="
+                    scope.row.invChecked == 0 ||
+                    scope.row.invChecked == 20 ||
+                    scope.row.invChecked == 31 ||
+                    scope.row.invChecked == 32 ||
+                    scope.row.invChecked == 33
+                  "
                 >
                   <el-icon>
                     <Postcard />
@@ -352,7 +355,6 @@
             v-model="editState.formData.amount"
             :step="1"
             :precision="2"
-            :min="0"
           />
         </el-form-item>
         <el-form-item label="税额" prop="tax">
@@ -424,8 +426,6 @@
 </template>
 
 <script setup lang="ts">
-import edit from "@/views/demo/curd/config/edit";
-
 defineOptions({
   name: "User",
   inheritAttrs: false,
@@ -442,7 +442,6 @@ import {
   RemoveFilled,
   Search,
   Upload,
-  VideoPlay,
 } from "@element-plus/icons-vue";
 import PDF from "pdf-vue3";
 import InvAPI, { InvPageQuery, InvData, InvQueryResult } from "@/api/inv";
@@ -506,15 +505,15 @@ const editState = reactive({
     ],
     invCode: [
       {
-        pattern: /^\d{12}$/,
-        message: "发票代码为12位数字",
+        pattern: /^\d{12}$|^\d{10}$/,
+        message: "发票代码为10/12位数字",
         trigger: "blur",
       },
     ],
     amount: [
       { required: true, message: "请输入金额", trigger: "blur" },
       {
-        pattern: /^\d+\.?\d*$/,
+        pattern: /^-?\d+\.?\d*$/,
         message: "金额格式不正确",
         trigger: "blur",
       },
@@ -569,6 +568,28 @@ function handleQuery() {
         }, 10000);
       }
     });
+}
+
+const invCheckStatus = reactive([
+  { code: 0, msg: "初始化", tip: "info", loading: true },
+  { code: 10, msg: "未查验", tip: "info", loading: false },
+  { code: 20, msg: "查验中", tip: "warning", loading: true },
+  { code: 30, msg: "已查验", tip: "success", loading: false },
+  { code: 31, msg: "查无此票", tip: "danger", loading: false },
+  { code: 32, msg: "不一致", tip: "danger", loading: false },
+  { code: 33, msg: "已作废", tip: "danger", loading: false },
+  { code: 40, msg: "查验失败", tip: "danger", loading: false },
+  { code: 50, msg: "超过查验次数", tip: "warning", loading: false },
+  { code: 51, msg: "访问被限制", tip: "warning", loading: false },
+]);
+
+function getInvCheckStatus(code: any) {
+  for (const s of invCheckStatus) {
+    if (s.code === code) {
+      return s;
+    }
+  }
+  return { code: -1, msg: "未知状态", tip: "danger", loading: false };
 }
 
 /** 重置查询 */
@@ -688,7 +709,47 @@ function handleViewFile(id: number) {
   });
 }
 
-function handleViewCheckResult(id: number) {}
+function handleViewCheckResult(id: number) {
+  for (const row of pageState.pageData) {
+    if (row.id === id) {
+      // 提交查验任务：未开始查验、查验失败、超过查验次数、访问被限制，这四类场景可以提交
+      if (
+        row.invChecked === 10 ||
+        row.invChecked === 40 ||
+        row.invChecked === 50 ||
+        row.invChecked === 51
+      ) {
+        ElMessageBox.confirm("确定发起查验任务吗?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "success",
+        })
+          .then(() => {
+            InvAPI.submitInvCheckTask(id).then(() => {
+              ElMessage({
+                type: "success",
+                message: "任务已提交",
+              });
+              handleQuery();
+            });
+          })
+          .catch(() => {
+            ElMessage({
+              type: "info",
+              message: "任务已取消",
+            });
+          });
+        return;
+      }
+    }
+  }
+  previewState.showDialog = true;
+  InvAPI.previewCheckResult(id).then((res: FilePreview) => {
+    previewState.url = res.url;
+    previewState.isPdf = false;
+    previewState.fileType = res.fileType;
+  });
+}
 
 const handleSubmit = useThrottleFn(() => {
   invFormRef.value.validate((valid: any) => {
@@ -728,5 +789,10 @@ watch(
 
 onMounted(() => {
   handleQuery();
+  UserAPI.getAutoCheck().then((res) => {
+    if (res === "1") {
+      autoCheckEnable.value = true;
+    }
+  });
 });
 </script>

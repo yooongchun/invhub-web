@@ -1,5 +1,7 @@
 import request from "@/utils/request";
+import { FilePreview } from "@/api/file";
 
+const INV_RAW_URL = "/api/v2/inv";
 const INV_BASE_URL = "/api/v2/inv/info";
 const INV_DETAIL_URL = "/api/v2/inv/detail";
 
@@ -48,6 +50,20 @@ class InvAPI {
   static parseData(fileId: number) {
     return request({
       url: `${INV_DETAIL_URL}/parse?fileId=${fileId}`,
+      method: "post",
+    });
+  }
+
+  static previewCheckResult(invId: number) {
+    return request<any, FilePreview>({
+      url: `${INV_RAW_URL}/${invId}/preview`,
+      method: "get",
+    });
+  }
+
+  static submitInvCheckTask(invId: number) {
+    return request({
+      url: `${INV_DETAIL_URL}/check/${invId}`,
       method: "post",
     });
   }

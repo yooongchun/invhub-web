@@ -30,6 +30,13 @@ class UserAPI {
     });
   }
 
+  static getAutoCheck() {
+    return request<any, string>({
+      url: `${USER_BASE_URL}/setting/AUTO_RUN_INV_CHECK`,
+      method: "get",
+    });
+  }
+
   /**
    * 获取用户分页列表
    *
