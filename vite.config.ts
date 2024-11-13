@@ -52,6 +52,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         },
       },
     },
+    // 静态资源请求路径
+    base: "/v2/app/",
     server: {
       // 允许IP访问
       host: "0.0.0.0",

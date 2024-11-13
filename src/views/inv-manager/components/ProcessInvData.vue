@@ -5,39 +5,27 @@ import InvAPI from "@/api/inv";
 const props = defineProps<{
   fileList: FileInfo[];
 }>();
-interface Result {
-  filename: string;
-  reason: string;
-}
+
 const invTaskState = reactive({
   succeed: <FileInfo[]>[],
   failed: <FileInfo[]>[],
-  reason: <Result[]>[],
 });
 
 async function startFileParse() {
   for (let fileInfo of props.fileList) {
+    fileInfo.taskReason = "开始解析";
     InvAPI.parseData(fileInfo.id)
       .then(() => {
         invTaskState.succeed.push(fileInfo);
-        invTaskState.reason.push({
-          filename: fileInfo.fileName,
-          reason: "成功",
-        });
+        fileInfo.taskReason = "解析成功";
       })
       .catch((res) => {
         if (res.message === "发票信息已存在") {
           invTaskState.succeed.push(fileInfo);
-          invTaskState.reason.push({
-            filename: fileInfo.fileName,
-            reason: "发票已存在",
-          });
+          fileInfo.taskReason = "发票已存在";
         } else {
           invTaskState.failed.push(fileInfo);
-          invTaskState.reason.push({
-            filename: fileInfo.fileName,
-            reason: "解析失败",
-          });
+          fileInfo.taskReason = "解析失败";
         }
       });
     await sleep(100);
@@ -61,6 +49,13 @@ const pct = computed(() => {
 const emit = defineEmits(["sent"]);
 onMounted(() => {
   startFileParse();
+});
+
+const fileListWithDefaultTaskReason = computed(() => {
+  return props.fileList.map((file) => ({
+    ...file,
+    taskReason: file.taskReason || "初始化",
+  }));
 });
 </script>
 
@@ -100,19 +95,24 @@ onMounted(() => {
       </el-progress>
     </el-col>
   </el-row>
-  <el-table :data="invTaskState.reason" style="width: 100%; margin-top: 40px">
-    <el-table-column prop="filename" label="文件名" />
-    <el-table-column prop="reason" label="结果">
+  <el-table
+    :data="fileListWithDefaultTaskReason"
+    style="width: 100%; margin-top: 40px"
+  >
+    <el-table-column prop="fileName" label="文件名" />
+    <el-table-column prop="taskReason" label="任务状态">
       <template #default="scope">
         <el-tag
           :type="
-            scope.row.reason === '成功'
+            scope.row.taskReason === '解析成功'
               ? 'success'
-              : scope.row.reason === '解析失败'
+              : scope.row.taskReason === '解析失败'
                 ? 'danger'
-                : 'warning'
+                : scope.row.taskReason === '发票已存在'
+                  ? 'warning'
+                  : 'info'
           "
-          >{{ scope.row.reason }}
+          >{{ scope.row.taskReason }}
         </el-tag>
       </template>
     </el-table-column>

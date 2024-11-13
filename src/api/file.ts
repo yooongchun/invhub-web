@@ -53,6 +53,8 @@ export interface FileInfo {
   fileType: string;
   /** Upload组件维护的文件对象 */
   file?: UploadUserFile;
+  /** 任务失败、成功、异常等原因 */
+  taskReason: string;
 }
 
 export interface FilePreview {

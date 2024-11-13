@@ -21,7 +21,7 @@
       <el-step title="完成" :status="stepId === 3 ? 'success' : 'wait'" />
     </el-steps>
     <el-upload
-      action="/dev-api/api/v2/file/upload"
+      :action="uploadUrl"
       list-type="picture"
       :auto-upload="true"
       style="margin-top: 40px"
@@ -79,6 +79,8 @@ import { TOKEN_KEY } from "@/enums/CacheEnum";
 import { getFileExtension } from "@/utils/util";
 import { FileInfo } from "@/api/file";
 import ProcessInvData from "@/views/inv-manager/components/ProcessInvData.vue";
+
+const uploadUrl = `${import.meta.env.VITE_APP_BASE_API}/api/v2/file/upload`;
 
 const props = defineProps({
   visible: {
