@@ -543,6 +543,9 @@ const editState = reactive({
 function handleAutoCheckChanged() {
   // 处理自动查验开启事件
   UserAPI.setAutoCheck(autoCheckEnable.value);
+  setTimeout(() => {
+    handleQuery();
+  }, 10000);
 }
 
 /** 查询 */
