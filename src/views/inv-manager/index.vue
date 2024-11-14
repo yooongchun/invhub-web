@@ -287,9 +287,10 @@
                   "
                 >
                   <el-icon>
-                    <Postcard />
+                    <Picture v-if="scope.row.invChecked == 30" />
+                    <Postcard v-else />
                   </el-icon>
-                  查验
+                  {{ scope.row.invChecked == 30 ? "结果" : "查验" }}
                 </el-button>
                 <el-button
                   type="success"
@@ -571,7 +572,7 @@ function handleQuery() {
 }
 
 const invCheckStatus = reactive([
-  { code: 0, msg: "初始化", tip: "info", loading: true },
+  { code: 0, msg: "初始化", tip: "info", loading: false },
   { code: 10, msg: "未查验", tip: "info", loading: false },
   { code: 20, msg: "查验中", tip: "warning", loading: true },
   { code: 30, msg: "已查验", tip: "success", loading: false },

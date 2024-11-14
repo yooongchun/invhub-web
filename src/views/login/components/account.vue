@@ -100,8 +100,8 @@ const state = reactive({
 });
 
 const loginData = ref<LoginData>({
-  username: "1729465178@qq.com",
-  password: "121561",
+  username: "",
+  password: "",
 } as LoginData);
 
 // 使用导入的依赖和库
